@@ -1,0 +1,16 @@
+{
+  "name": "microsoc-command-center-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "This folder contains the backend application code for Microsoc Command Center.",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "src/app.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "start": "node src/app.js"
+  }
+}
