@@ -56,7 +56,7 @@ const LiveLogFeed = () => {
                             <span className={`${getSeverityColor(log.severity)} font-bold mr-2`}>[{log.severity.toUpperCase().charAt(0)}]</span>
                             <span className="text-cyan-400 mr-2">{log.source_ip}</span>
                             <span className="text-red-400">{log.attack_type}</span>
-                            <span className="text-gray-500 ml-2 italic">-> {log.target}</span>
+                            <span className="text-gray-500 ml-2 italic">{log.target}</span>
                         </motion.li>
                     ))}
                 </AnimatePresence>
