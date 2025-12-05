@@ -3,11 +3,7 @@ import mongoose from 'mongoose';
 
 const connectDB = async (uri) => {
   try {
-    // The main server file will pass the URI obtained from process.env
-    await mongoose.connect(uri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    });
+    await mongoose.connect(uri);
     console.log("✅ Red Ranger's Database Connected");
   } catch (err) {
     console.error("❌ MongoDB connection error:", err.message);
