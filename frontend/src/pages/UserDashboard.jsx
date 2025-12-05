@@ -5,11 +5,11 @@ import AttackTrend from '../components/charts/AttackTrend';
 import SeverityChart from '../components/charts/SeverityChart';
 import { mockIncidents } from '../data/mockData';
 import IncidentCard from '../components/dashboard/IncidentCard';
-import { useLiveFeed } from '../hooks/UseLiveFeed';
+import { UseLiveFeed } from '../hooks/UseLiveFeed';
 import { motion as Motion } from 'framer-motion';
 
 const UserDashboard = () => {
-    const { incidentCount } = useLiveFeed();
+    const { incidentCount } = UseLiveFeed();
     const criticalCount = mockIncidents.filter(i => i.severity === 'Critical' && i.status !== 'Resolved').length;
     const topIP = mockIncidents[0].ip; 
 
