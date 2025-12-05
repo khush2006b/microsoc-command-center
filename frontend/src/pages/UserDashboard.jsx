@@ -5,8 +5,8 @@ import AttackTrend from '../components/charts/AttackTrend';
 import SeverityChart from '../components/charts/SeverityChart';
 import { mockIncidents } from '../data/mockData';
 import IncidentCard from '../components/dashboard/IncidentCard';
-import { useLiveFeed } from '../hooks/useLiveFeed';
-import { motion } from 'framer-motion';
+import { useLiveFeed } from '../hooks/UseLiveFeed';
+import { motion as Motion } from 'framer-motion';
 
 const UserDashboard = () => {
     const { incidentCount } = useLiveFeed();
@@ -24,7 +24,7 @@ const UserDashboard = () => {
     };
 
     return (
-        <motion.div 
+        <Motion.div 
             className="space-y-8"
             variants={containerVariants}
             initial="hidden"
@@ -83,7 +83,7 @@ const UserDashboard = () => {
                     ))}
                 </div>
             </div>
-        </motion.div>
+        </Motion.div>
     );
 };
 

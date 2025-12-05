@@ -4,11 +4,11 @@ import {
 } from 'recharts';
 import { mockSeverityData } from '../../data/mockData';
 import { ScaleIcon } from '@heroicons/react/24/outline';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 
 const SeverityChart = () => {
     return (
-        <motion.div 
+        <Motion.div 
             className="glass-card h-full min-h-[350px] flex flex-col"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -45,7 +45,7 @@ const SeverityChart = () => {
                     </PieChart>
                 </ResponsiveContainer>
             </div>
-        </motion.div>
+        </Motion.div>
     );
 };
 

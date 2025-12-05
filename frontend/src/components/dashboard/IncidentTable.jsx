@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import StatusBadge from '../common/StatusBadge';
 import { mockIncidents } from '../../data/mockData';
 import { CheckIcon, ArrowPathIcon, UserIcon, EyeIcon } from '@heroicons/react/24/outline';
@@ -113,13 +113,13 @@ const IncidentTable = () => {
                         <th className="px-6 py-3 text-right">Actions</th>
                     </tr>
                 </thead>
-                <motion.tbody 
+                <Motion.tbody 
                     className="divide-y divide-neon-cyan/10"
                     layout
                 >
                     <AnimatePresence>
                         {incidents.filter(i => i.status !== 'Resolved').map((incident) => (
-                            <motion.tr 
+                            <Motion.tr 
                                 key={incident.id} 
                                 className="hover:bg-neon-cyan/5 text-sm transition-colors duration-150"
                                 initial={{ opacity: 0, y: 10 }}
@@ -177,10 +177,10 @@ const IncidentTable = () => {
                                         )}
                                     </div>
                                 </td>
-                            </motion.tr>
+                            </Motion.tr>
                         ))}
                     </AnimatePresence>
-                </motion.tbody>
+                </Motion.tbody>
             </table>
             
             <IncidentDetailsModal

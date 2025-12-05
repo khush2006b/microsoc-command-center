@@ -1,10 +1,10 @@
 import React, { useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { UseLiveFeed } from '../../hooks/UseLiveFeed';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
+import { useLiveFeed } from '../../hooks/UseLiveFeed';
 import { BoltIcon } from '@heroicons/react/24/outline';
 
 const LiveLogFeed = () => {
-    const { logs } = UseLiveFeed();
+    const { logs } = useLiveFeed();
     const listRef = useRef(null);
 
     // Auto-scroll logic
@@ -36,14 +36,14 @@ const LiveLogFeed = () => {
                 <BoltIcon className="w-5 h-5 mr-2 text-neon-cyan" />
                 Live Log Ingestion Stream
             </h3>
-            <motion.ul 
+            <Motion.ul 
                 ref={listRef} 
                 className="flex flex-col space-y-2 overflow-y-scroll overflow-x-hidden flex-grow pt-1 pr-2"
                 style={{ scrollbarWidth: 'none' }} // Hide scrollbar
             >
                 <AnimatePresence initial={false}>
                     {logs.map((log) => (
-                        <motion.li
+                        <Motion.li
                             key={log.id}
                             variants={itemVariants}
                             initial="initial"
@@ -57,10 +57,10 @@ const LiveLogFeed = () => {
                             <span className="text-cyan-400 mr-2">{log.source_ip}</span>
                             <span className="text-red-400">{log.attack_type}</span>
                             <span className="text-gray-500 ml-2 italic">{log.target}</span>
-                        </motion.li>
+                        </Motion.li>
                     ))}
                 </AnimatePresence>
-            </motion.ul>
+            </Motion.ul>
         </div>
     );
 };
