@@ -12,18 +12,6 @@ const logSchema = new Schema(
     event_type: {
       type: String,
       required: true,
-      enum: [
-        'xss',
-        'sql_injection',
-        'port_scan',
-        'failed_login',
-        'file_download',
-        'generic_request',
-        'brute_force',
-        'suspicious_activity',
-        'anomaly',
-        'rule_trigger'
-      ],
       index: true,
       lowercase: true,
       trim: true

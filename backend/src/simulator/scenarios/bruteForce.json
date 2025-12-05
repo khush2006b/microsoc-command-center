@@ -1,0 +1,7 @@
+{
+  "name": "bruteForce",
+  "steps": [
+    { "action": "normalTraffic", "count": 30, "delay": 50 },
+    { "action": "failedLogin", "count": 12, "delay": 200 }
+  ]
+}
