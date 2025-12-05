@@ -1,0 +1,10 @@
+{
+  "name": "multiStageAttack",
+  "steps": [
+    { "action": "portScan", "count": 20, "delay": 80 },
+    { "action": "failedLogin", "count": 12, "delay": 150 },
+    { "action": "sqlInjection", "count": 4, "delay": 350 },
+    { "action": "xss", "count": 2, "delay": 350 },
+    { "action": "dataExfiltration", "count": 1, "delay": 800 }
+  ]
+}

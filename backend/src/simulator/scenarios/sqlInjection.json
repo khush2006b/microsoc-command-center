@@ -1,0 +1,7 @@
+{
+  "name": "sqlInjection",
+  "steps": [
+    { "action": "normalTraffic", "count": 20, "delay": 50 },
+    { "action": "sqlInjection", "count": 6, "delay": 300 }
+  ]
+}
