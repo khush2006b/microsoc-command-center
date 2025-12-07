@@ -5,7 +5,6 @@ import { mockIncidents } from '../../data/mockData';
 import { CheckIcon, ArrowPathIcon, UserIcon, EyeIcon } from '@heroicons/react/24/outline';
 import { Dialog, Transition } from '@headlessui/react';
 
-// Reusable Incident Detail Modal (Headless UI)
 const IncidentDetailsModal = ({ isOpen, closeModal, incident }) => {
     if (!incident) return null;
 

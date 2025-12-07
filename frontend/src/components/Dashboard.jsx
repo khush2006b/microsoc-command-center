@@ -1,160 +1,184 @@
-import React, { useEffect, useState } from 'react';
-import io from 'socket.io-client';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react';
+import { Bars3Icon } from '@heroicons/react/24/outline';
+import Sidebar from './Sidebar';
+import CriticalAlertBanner from './CriticalAlertBanner';
+import LogsTable from './LogsTable';
+import AlertsTable from './AlertsTable';
+import AttackTypeChart from './Charts/AttackTypeChart';
+import SeverityTrendChart from './Charts/SeverityTrendChart';
+import TopSourceIPsChart from './Charts/TopSourceIPsChart';
+import AlertsSeverityChart from './Charts/AlertsSeverityChart';
+import { useSocket } from '../hooks/useSocket';
 
-// Connect to Backend Socket
-const socket = io('http://localhost:3000');
-
-const Dashboard = () => {
-  const [incidents, setIncidents] = useState([]);
-  const [stats, setStats] = useState({ total: 0, open: 0, resolved: 0, critical: 0 });
-  const [topIps, setTopIps] = useState([]);
-
-  // Fetch Initial Data
-  const fetchData = async () => {
-    try {
-      const incRes = await axios.get('http://localhost:3000/api/incidents');
-      const statRes = await axios.get('http://localhost:3000/api/dashboard/stats');
-      const ipRes = await axios.get('http://localhost:3000/api/dashboard/top-ip');
-
-      setIncidents(incRes.data);
-      setStats(statRes.data);
-      setTopIps(ipRes.data);
-    } catch (error) {
-      console.error("Error fetching data", error);
-    }
-  };
+export default function Dashboard() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [stats, setStats] = useState({
+    totalLogs: 0,
+    totalAlerts: 0,
+    criticalAlerts: 0,
+    resolutionRate: 0
+  });
+  const socket = useSocket();
 
   useEffect(() => {
-    fetchData();
+    const fetchStats = async () => {
+      try {
+        const [logsRes, alertsRes] = await Promise.all([
+          fetch('http://localhost:3000/api/logs/stats'),
+          fetch('http://localhost:3000/api/alerts/stats')
+        ]);
 
-    // --- SOCKET EVENT LISTENERS (Real-time magic) ---
-    
-    // 1. New Attack Detection
-    socket.on('newIncident', (newIncident) => {
-      console.log("⚠️ New Alert:", newIncident);
-      setIncidents((prev) => [newIncident, ...prev]);
-    });
+        const logsData = await logsRes.json();
+        const alertsData = await alertsRes.json();
 
-    // 2. Incident Update (Assignment or Status Change)
-    socket.on('incidentUpdated', (updatedIncident) => {
-      setIncidents((prev) => 
-        prev.map((inc) => (inc._id === updatedIncident._id ? updatedIncident : inc))
-      );
-    });
-
-    // 3. Stats Refresh Trigger
-    socket.on('dashboardStatsUpdate', () => {
-      // Re-fetch aggregate stats when something changes
-      axios.get('http://localhost:3000/api/dashboard/stats')
-           .then(res => setStats(res.data));
-           
-      axios.get('http://localhost:3000/api/dashboard/top-ip')
-           .then(res => setTopIps(res.data));
-    });
-
-    return () => {
-      socket.off('newIncident');
-      socket.off('incidentUpdated');
-      socket.off('dashboardStatsUpdate');
+        if (logsData.success && alertsData.success) {
+          setStats({
+            totalLogs: logsData.stats?.total_logs || 0,
+            totalAlerts: alertsData.stats?.total_alerts || 0,
+            criticalAlerts: alertsData.stats?.severity_distribution?.critical || 0,
+            resolutionRate: alertsData.stats?.resolution_rate || 0
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching stats:', err);
+      }
     };
+    fetchStats();
   }, []);
 
-  // --- ACTIONS ---
+  // Real-time stat updates
+  useEffect(() => {
+    if (!socket) return;
 
-  const assignAnalyst = async (id) => {
-    const analystName = prompt("Enter Analyst Name (e.g., Blue Ranger):");
-    if (analystName) {
-      await axios.put(`http://localhost:3000/api/incidents/${id}/assign`, { analystName });
-    }
-  };
+    const handleUpdate = () => {
+      // Refetch stats on any new log or alert
+      fetch('http://localhost:3000/api/logs/stats')
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            setStats(prev => ({ ...prev, totalLogs: data.stats?.total_logs || 0 }));
+          }
+        });
 
-  const updateStatus = async (id, status) => {
-    await axios.put(`http://localhost:3000/api/incidents/${id}/status`, { status });
-  };
+      fetch('http://localhost:3000/api/alerts/stats')
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            setStats(prev => ({
+              ...prev,
+              totalAlerts: data.stats?.total_alerts || 0,
+              criticalAlerts: data.stats?.severity_distribution?.critical || 0,
+              resolutionRate: data.stats?.resolution_rate || 0
+            }));
+          }
+        });
+    };
 
-  const simulateAttack = async () => {
-    await axios.post('http://localhost:3000/api/simulate/attack');
-  };
+    socket.on('log:new', handleUpdate);
+    socket.on('alert:new', handleUpdate);
+    socket.on('alert:critical', handleUpdate);
 
-  // --- RENDER (NO UI/CSS as requested) ---
+    return () => {
+      if (socket && socket.off) {
+        socket.off('log:new', handleUpdate);
+        socket.off('alert:new', handleUpdate);
+        socket.off('alert:critical', handleUpdate);
+      }
+    };
+  }, [socket]);
+
   return (
-    <div style={{ padding: '20px', fontFamily: 'monospace' }}>
-      <h1>🔴 Red Ranger's MicroSOC Command Center</h1>
-      
-      <button onClick={simulateAttack}>⚠️ SIMULATE CYBER KAIJU ATTACK</button>
+    <div className="flex h-screen bg-gray-900 text-gray-100">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <hr />
+      <main className="flex-1 overflow-auto">
+        {/* Header */}
+        <header className="sticky top-0 z-40 border-b border-gray-700 bg-gray-900 bg-opacity-95 backdrop-blur">
+          <div className="flex items-center justify-between px-6 py-4">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="lg:hidden text-gray-400 hover:text-gray-200"
+              >
+                <Bars3Icon className="w-6 h-6" />
+              </button>
+              <h1 className="text-2xl font-bold gradient-text">Cyber Security SOC</h1>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className={`px-3 py-1 rounded-full text-sm font-medium ${socket?.isConnected ? 'bg-green-900 text-green-200' : 'bg-red-900 text-red-200'}`}>
+                {socket?.isConnected ? '🟢 Connected' : '🔴 Disconnected'}
+              </div>
+            </div>
+          </div>
+        </header>
 
-      {/* DASHBOARD STATS WIDGET */}
-      <h3>📊 Dashboard Statistics</h3>
-      <ul>
-        <li>Total Incidents: {stats.total}</li>
-        <li>Active (Open): {stats.open}</li>
-        <li>Critical Threats: {stats.critical}</li>
-        <li>Resolved: {stats.resolved}</li>
-      </ul>
+        {/* Content */}
+        <div className="p-6 space-y-6">
+          {/* Critical Alert Banner */}
+          <CriticalAlertBanner />
 
-      <hr />
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-400 text-sm">Total Logs</p>
+                  <p className="text-3xl font-bold text-gray-100 mt-2">{stats.totalLogs.toLocaleString()}</p>
+                </div>
+                <div className="text-4xl">📊</div>
+              </div>
+            </div>
 
-      {/* TOP ATTACKERS WIDGET */}
-      <h3>🌍 Top Attacker IPs</h3>
-      <table border="1">
-        <thead>
-          <tr><th>IP Address</th><th>Attack Count</th></tr>
-        </thead>
-        <tbody>
-          {topIps.map(ip => (
-            <tr key={ip._id}>
-              <td>{ip._id}</td>
-              <td>{ip.count}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-400 text-sm">Total Alerts</p>
+                  <p className="text-3xl font-bold text-gray-100 mt-2">{stats.totalAlerts.toLocaleString()}</p>
+                </div>
+                <div className="text-4xl">🚨</div>
+              </div>
+            </div>
 
-      <hr />
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-400 text-sm">Critical Alerts</p>
+                  <p className="text-3xl font-bold text-red-400 mt-2">{stats.criticalAlerts}</p>
+                </div>
+                <div className="text-4xl">⚠️</div>
+              </div>
+            </div>
 
-      {/* INCIDENT LIST / ANALYST WORKLOAD */}
-      <h3>📝 Live Incident Feed & Management</h3>
-      <table border="1" cellPadding="10">
-        <thead>
-          <tr>
-            <th>Time</th>
-            <th>Type</th>
-            <th>Severity</th>
-            <th>Source IP</th>
-            <th>Status</th>
-            <th>Assigned To</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {incidents.map((inc) => (
-            <tr key={inc._id}>
-              <td>{new Date(inc.timestamp).toLocaleTimeString()}</td>
-              <td>{inc.type}</td>
-              <td style={{ color: inc.severity === 'Critical' ? 'red' : 'black' }}>
-                {inc.severity}
-              </td>
-              <td>{inc.sourceIP}</td>
-              <td>{inc.status}</td>
-              <td>{inc.assignedTo || "Unassigned"}</td>
-              <td>
-                {inc.status === 'Open' && (
-                  <button onClick={() => assignAnalyst(inc._id)}>Assign Me</button>
-                )}
-                {inc.status === 'In Progress' && (
-                  <button onClick={() => updateStatus(inc._id, 'Resolved')}>Resolve</button>
-                )}
-                {inc.status === 'Resolved' && "✅"}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-400 text-sm">Resolution Rate</p>
+                  <p className="text-3xl font-bold text-green-400 mt-2">{(stats.resolutionRate * 100).toFixed(1)}%</p>
+                </div>
+                <div className="text-4xl">✅</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <AttackTypeChart />
+            <AlertsSeverityChart />
+            <SeverityTrendChart />
+            <TopSourceIPsChart />
+          </div>
+
+          {/* Tables */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
+              <LogsTable limit={10} />
+            </div>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
+              <AlertsTable limit={10} />
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   );
-};
-
-export default Dashboard;
+}

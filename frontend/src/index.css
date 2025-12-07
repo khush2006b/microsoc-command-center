@@ -1,27 +1,63 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Space+Mono&display=swap');
+
+/* Set the default background image variable */
+:root {
+  --bg-image: url('./assets/cyber-grid.svg');
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 /* Custom Global Styles for Futuristic Theme */
 @layer base {
   body {
-    @apply bg-primary-dark text-gray-200 font-sans tracking-wider antialiased;
+    @apply bg-[#0A0E18] text-gray-200 font-sans tracking-wider antialiased;
     background-image: var(--bg-image);
     background-size: cover;
     background-attachment: fixed;
   }
 }
 
+/* Premium scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.4), rgba(239, 68, 68, 0.6));
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.6), rgba(239, 68, 68, 0.8));
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 /* Glassmorphism Utility Class */
 @layer components {
   .glass-card {
-    @apply bg-glass-bg backdrop-blur-md border border-neon-cyan/20 shadow-glass-glow rounded-xl p-6 transition-all duration-300;
+    @apply bg-[rgba(20,26,40,0.6)] backdrop-blur-md border border-cyan-400/20 shadow-[0_4px_30px_rgba(0,0,0,0.1)] rounded-xl p-6 transition-all duration-300;
   }
   .holographic-text {
-    @apply text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan to-neon-red;
+    @apply text-transparent bg-clip-text bg-linear-to-r from-cyan-400 to-red-500;
   }
-}
-
-/* Set the default background image variable */
-:root {
-  --bg-image: url('./assets/cyber-grid.svg'); /* Assumes you put a pattern here */
 }

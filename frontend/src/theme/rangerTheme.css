@@ -1,0 +1,536 @@
+/**
+ * Power Rangers Morphin Grid Theme Styles
+ * High-tech command center aesthetic with neon glows and animations
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;500;600;700&family=Roboto+Mono:wght@300;400;500;700&display=swap');
+
+/* ============================================
+   ROOT THEME VARIABLES
+   ============================================ */
+:root {
+  /* Colors */
+  --ranger-red: #D40000;
+  --morphin-neon-red: #FF1744;
+  --energy-orange: #FF6F00;
+  --techno-blue: #2962FF;
+  --deep-black: #0A0A0A;
+  --dark-steel: #1C1C1C;
+  --panel-dark: #151515;
+  --grid-gray: #2D2D2D;
+  --neon-white: #F0F0F0;
+  
+  /* Severity Colors */
+  --severity-critical: #FF1744;
+  --severity-high: #D40000;
+  --severity-medium: #FF6F00;
+  --severity-low: #2962FF;
+  --severity-success: #00E676;
+  
+  /* Fonts */
+  --font-header: 'Orbitron', 'Space Mono', monospace;
+  --font-body: 'Exo 2', sans-serif;
+  --font-mono: 'Roboto Mono', monospace;
+  
+  /* Shadows & Glows */
+  --glow-red: 0 0 20px rgba(212, 0, 0, 0.6), 0 0 40px rgba(255, 23, 68, 0.3);
+  --glow-red-intense: 0 0 30px rgba(255, 23, 68, 0.8), 0 0 60px rgba(212, 0, 0, 0.5);
+  --glow-blue: 0 0 20px rgba(41, 98, 255, 0.5), 0 0 40px rgba(41, 98, 255, 0.2);
+  --glow-orange: 0 0 20px rgba(255, 111, 0, 0.5), 0 0 40px rgba(255, 111, 0, 0.2);
+  --panel-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================
+   GLOBAL STYLES
+   ============================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background-color: var(--deep-black);
+  color: var(--neon-white);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   BACKGROUND GRID & EFFECTS
+   ============================================ */
+
+.morphin-grid-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background:
+    linear-gradient(0deg, transparent 24%, rgba(212, 0, 0, 0.05) 25%, rgba(212, 0, 0, 0.05) 26%, transparent 27%, transparent 74%, rgba(212, 0, 0, 0.05) 75%, rgba(212, 0, 0, 0.05) 76%, transparent 77%, transparent),
+    linear-gradient(90deg, transparent 24%, rgba(212, 0, 0, 0.05) 25%, rgba(212, 0, 0, 0.05) 26%, transparent 27%, transparent 74%, rgba(212, 0, 0, 0.05) 75%, rgba(212, 0, 0, 0.05) 76%, transparent 77%, transparent);
+  background-size: 50px 50px;
+  background-color: var(--deep-black);
+  z-index: -1;
+  opacity: 0.3;
+  animation: grid-pulse 8s ease-in-out infinite;
+}
+
+@keyframes grid-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.5; }
+}
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--panel-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ranger-red);
+  border-radius: 4px;
+  box-shadow: var(--glow-red);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--morphin-neon-red);
+  box-shadow: var(--glow-red-intense);
+}
+
+/* ============================================
+   TEXT UTILITIES
+   ============================================ */
+
+.text-header {
+  font-family: var(--font-header);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.text-mono {
+  font-family: var(--font-mono);
+  font-weight: 400;
+}
+
+.text-glow-red {
+  color: var(--morphin-neon-red);
+  text-shadow: 0 0 10px rgba(255, 23, 68, 0.8);
+}
+
+.text-glow-blue {
+  color: var(--techno-blue);
+  text-shadow: 0 0 10px rgba(41, 98, 255, 0.6);
+}
+
+/* ============================================
+   PANEL / CARD STYLES
+   ============================================ */
+
+.panel,
+.card,
+.hologram-tile {
+  background: linear-gradient(135deg, rgba(20, 20, 20, 0.9) 0%, rgba(28, 28, 28, 0.95) 100%);
+  border: 1px solid rgba(212, 0, 0, 0.2);
+  border-radius: 0.75rem;
+  box-shadow: var(--panel-shadow);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  transition: all var(--transition-normal);
+}
+
+.panel:hover,
+.card:hover,
+.hologram-tile:hover {
+  border-color: rgba(212, 0, 0, 0.5);
+  box-shadow: var(--panel-shadow), var(--glow-red);
+  background: linear-gradient(135deg, rgba(25, 25, 25, 0.95) 0%, rgba(30, 30, 30, 0.98) 100%);
+}
+
+.panel-glow-red {
+  border-color: var(--ranger-red);
+  box-shadow: inset 0 0 20px rgba(212, 0, 0, 0.1), 0 0 20px rgba(212, 0, 0, 0.3);
+}
+
+.panel-glow-blue {
+  border-color: var(--techno-blue);
+  box-shadow: inset 0 0 20px rgba(41, 98, 255, 0.1), 0 0 20px rgba(41, 98, 255, 0.2);
+}
+
+/* ============================================
+   BUTTON STYLES
+   ============================================ */
+
+.btn,
+button {
+  font-family: var(--font-header);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.75rem 1.5rem;
+  border: 1px solid var(--ranger-red);
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--morphin-neon-red);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+  font-size: 12px;
+}
+
+button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 23, 68, 0.3), transparent);
+  transition: left var(--transition-fast);
+}
+
+button:hover {
+  border-color: var(--morphin-neon-red);
+  box-shadow: 0 0 20px rgba(212, 0, 0, 0.6), inset 0 0 10px rgba(212, 0, 0, 0.2);
+  color: var(--neon-white);
+}
+
+button:hover::before {
+  left: 100%;
+}
+
+button:active {
+  box-shadow: 0 0 30px rgba(255, 23, 68, 0.8), inset 0 0 20px rgba(212, 0, 0, 0.3);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #D40000 0%, #FF1744 100%);
+  border-color: var(--morphin-neon-red);
+  color: white;
+  box-shadow: var(--glow-red);
+}
+
+.btn-primary:hover {
+  box-shadow: var(--glow-red-intense);
+}
+
+.btn-secondary {
+  background: transparent;
+  border-color: var(--techno-blue);
+  color: var(--techno-blue);
+}
+
+.btn-secondary:hover {
+  border-color: var(--morphin-neon-red);
+  color: var(--morphin-neon-red);
+  box-shadow: var(--glow-red);
+}
+
+/* ============================================
+   BADGE / TAG STYLES
+   ============================================ */
+
+.badge {
+  display: inline-block;
+  padding: 0.375rem 0.75rem;
+  border-radius: 2rem;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: 1px solid;
+  transition: all var(--transition-normal);
+}
+
+.badge-critical {
+  background: rgba(255, 23, 68, 0.15);
+  border-color: var(--severity-critical);
+  color: var(--morphin-neon-red);
+  box-shadow: 0 0 10px rgba(255, 23, 68, 0.4);
+  animation: pulse-critical 1.5s ease-in-out infinite;
+}
+
+.badge-high {
+  background: rgba(212, 0, 0, 0.15);
+  border-color: var(--severity-high);
+  color: var(--ranger-red);
+  box-shadow: 0 0 8px rgba(212, 0, 0, 0.3);
+}
+
+.badge-medium {
+  background: rgba(255, 111, 0, 0.15);
+  border-color: var(--severity-medium);
+  color: var(--energy-orange);
+  box-shadow: 0 0 8px rgba(255, 111, 0, 0.3);
+}
+
+.badge-low {
+  background: rgba(41, 98, 255, 0.15);
+  border-color: var(--severity-low);
+  color: var(--techno-blue);
+  box-shadow: 0 0 8px rgba(41, 98, 255, 0.3);
+}
+
+.badge-success {
+  background: rgba(0, 230, 118, 0.15);
+  border-color: var(--severity-success);
+  color: var(--severity-success);
+  box-shadow: 0 0 8px rgba(0, 230, 118, 0.3);
+}
+
+/* ============================================
+   INPUT STYLES
+   ============================================ */
+
+input,
+select,
+textarea {
+  background: rgba(20, 20, 20, 0.8);
+  border: 1px solid rgba(212, 0, 0, 0.2);
+  border-radius: 0.5rem;
+  color: var(--neon-white);
+  padding: 0.75rem;
+  font-family: var(--font-body);
+  transition: all var(--transition-normal);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--ranger-red);
+  box-shadow: 0 0 15px rgba(212, 0, 0, 0.4);
+  background: rgba(25, 25, 25, 0.9);
+}
+
+input::placeholder {
+  color: rgba(240, 240, 240, 0.3);
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes pulse-critical {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 10px rgba(255, 23, 68, 0.4);
+  }
+  50% {
+    opacity: 0.7;
+    box-shadow: 0 0 20px rgba(255, 23, 68, 0.7);
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(212, 0, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(212, 0, 0, 0.6);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-top {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes hologram-appear {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes screen-flash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes scan-line {
+  0% {
+    top: -100%;
+  }
+  100% {
+    top: 100%;
+  }
+}
+
+@keyframes laser-underline {
+  0% {
+    width: 0;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+@keyframes charge-up {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 10px rgba(212, 0, 0, 0.3);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 25px rgba(212, 0, 0, 0.6);
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+.animate-slide-in-left {
+  animation: slide-in-left var(--transition-normal);
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right var(--transition-normal);
+}
+
+.animate-slide-in-top {
+  animation: slide-in-top var(--transition-normal);
+}
+
+.animate-fade-in {
+  animation: fade-in var(--transition-normal);
+}
+
+.animate-hologram {
+  animation: hologram-appear var(--transition-normal);
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.animate-charge-up {
+  animation: charge-up var(--transition-normal);
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+.glow-red {
+  box-shadow: var(--glow-red);
+}
+
+.glow-red-intense {
+  box-shadow: var(--glow-red-intense);
+}
+
+.glow-blue {
+  box-shadow: var(--glow-blue);
+}
+
+.glow-orange {
+  box-shadow: var(--glow-orange);
+}
+
+/* ============================================
+   SEVERITY INDICATORS
+   ============================================ */
+
+.severity-indicator {
+  display: inline-block;
+  width: 4px;
+  height: 20px;
+  border-radius: 2px;
+  margin-right: 8px;
+}
+
+.severity-indicator.critical {
+  background: var(--severity-critical);
+  box-shadow: var(--glow-red-intense);
+}
+
+.severity-indicator.high {
+  background: var(--severity-high);
+  box-shadow: var(--glow-red);
+}
+
+.severity-indicator.medium {
+  background: var(--severity-medium);
+  box-shadow: var(--glow-orange);
+}
+
+.severity-indicator.low {
+  background: var(--severity-low);
+  box-shadow: var(--glow-blue);
+}
