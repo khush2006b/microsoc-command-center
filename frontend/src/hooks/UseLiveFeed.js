@@ -4,7 +4,7 @@ import { generateMockLog } from '../data/mockData';
 
 const LOG_HISTORY_LIMIT = 50;
 
-export const useLiveFeed = () => {
+export const UseLiveFeed = () => {
     const [logs, setLogs] = useState([]);
     const [incidentCount, setIncidentCount] = useState(1200);
 

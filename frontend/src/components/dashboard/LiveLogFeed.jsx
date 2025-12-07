@@ -1,10 +1,10 @@
 import React, { useRef, useEffect } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
-import { useLiveFeed } from '../../hooks/UseLiveFeed';
+import { UseLiveFeed } from '../../hooks/UseLiveFeed';
 import { BoltIcon } from '@heroicons/react/24/outline';
 
 const LiveLogFeed = () => {
-    const { logs } = useLiveFeed();
+    const { logs } = UseLiveFeed();
     const listRef = useRef(null);
 
     // Auto-scroll logic
