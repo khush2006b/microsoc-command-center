@@ -1,25 +1,20 @@
 import express from 'express';
-import {
-  getAllIncidents,
-  assignIncident,
-  updateStatus,
-  getDashboardStats,
-  getTopAttackingIPs,
-  simulateAttack
-} from '../controllers/incidentController.js';
+import * as incidentController from '../controllers/incidentController.js';
 
 const router = express.Router();
 
-// Standard Incident Routes
-router.get('/incidents', getAllIncidents);
-router.put('/incidents/:id/assign', assignIncident);
-router.put('/incidents/:id/status', updateStatus);
+router.post('/', incidentController.createIncident);
+router.get('/', incidentController.getIncidents);
+router.get('/stats', incidentController.getIncidentStats);
+router.get('/:id', incidentController.getIncidentById);
+router.patch('/:id', incidentController.updateIncident);
+router.patch('/:id/status', incidentController.updateIncidentStatus);
+router.patch('/:id/assign', incidentController.assignIncident);
 
-// Dashboard Specific Routes
-router.get('/dashboard/stats', getDashboardStats);
-router.get('/dashboard/top-ip', getTopAttackingIPs);
+// POST /api/incidents/:id/alerts - Link alerts to incident
+router.post('/:id/alerts', incidentController.linkAlerts);
 
-// Simulation Route
-router.post('/simulate/attack', simulateAttack);
+// DELETE /api/incidents/:id - Delete incident
+router.delete('/:id', incidentController.deleteIncident);
 
 export default router;
