@@ -1,0 +1,58 @@
+{
+  "brute_force": {
+    "enabled": true,
+    "windowSeconds": 60,
+    "mediumThreshold": 5,
+    "highThreshold": 10,
+    "criticalThreshold": 20,
+    "dedupTtlSeconds": 300,
+    "mitre_id": "T1110",
+    "description": "Detects repeated failed login attempts from the same IP within a short time window."
+  },
+  "port_scan": {
+    "enabled": true,
+    "windowSeconds": 120,
+    "threshold": 20,
+    "dedupTtlSeconds": 300,
+    "mitre_id": "T1046",
+    "description": "Detects port scanning activity by tracking unique destination ports from the same IP."
+  },
+  "sql_injection": {
+    "enabled": true,
+    "dedupTtlSeconds": 600,
+    "mitre_id": "T1190",
+    "description": "Detects SQL injection attempts based on suspicious payload patterns in requests."
+  },
+  "xss": {
+    "enabled": true,
+    "dedupTtlSeconds": 600,
+    "mitre_id": "T1059.007",
+    "description": "Detects reflected/stored XSS payload patterns in user input."
+  },
+  "data_exfiltration": {
+    "enabled": true,
+    "windowSeconds": 300,
+    "mediumBytes": 50000000,
+    "highBytes": 200000000,
+    "criticalBytes": 1000000000,
+    "dedupTtlSeconds": 600,
+    "mitre_id": "T1041",
+    "description": "Detects unusually large outbound data transfers suggesting exfiltration."
+  },
+  "anomaly_spike": {
+    "enabled": true,
+    "windowSeconds": 60,
+    "perIpThreshold": 100,
+    "globalThreshold": 1000,
+    "dedupTtlSeconds": 180,
+    "mitre_id": null,
+    "description": "Simple volume-based anomaly detection for per-IP or global traffic spikes."
+  },
+  "multistage_intrusion": {
+    "enabled": true,
+    "windowSeconds": 900,
+    "dedupTtlSeconds": 900,
+    "mitre_id": "T1595,T1110,T1190,T1041",
+    "description": "Correlates port scan → brute force → SQLi → data exfiltration in one chained intrusion."
+  }
+}
