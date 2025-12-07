@@ -1,0 +1,63 @@
+services:
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: src/Dockerfile
+    container_name: microsoc-backend
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - MONGODB_URI=${MONGODB_URI}
+      - REDIS_URL=redis://redis:6379
+      - LOG_QUEUE_NAME=logQueue
+    depends_on:
+      - redis
+    volumes:
+      - ./backend:/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 15s
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: src/workers/Dockerfile
+    container_name: microsoc-worker
+    environment:
+      - MONGODB_URI=${MONGODB_URI}
+      - REDIS_URL=redis://redis:6379
+      - LOG_QUEUE_NAME=logQueue
+      - BACKEND_URL=http://backend:3000
+    depends_on:
+      backend:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./backend:/app
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: microsoc-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:3000
+    depends_on:
+      - backend
+
+  redis:
+    image: redis:latest
+    container_name: microsoc-redis
+    ports:
+      - "6379:6379"
