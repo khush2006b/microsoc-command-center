@@ -19,7 +19,13 @@ export function LogsTable() {
       if (filter.severity) params.append('severity', filter.severity);
       if (filter.attackType) params.append('event_type', filter.attackType);
 
-      const res = await fetch(`http://localhost:3000/api/logs/recent?${params}`);
+      const token = localStorage.getItem('token');
+      const res = await fetch(`http://localhost:3000/api/logs/recent?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
       const data = await res.json();
 
       if (data.success) {

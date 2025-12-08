@@ -8,7 +8,13 @@ export default function CriticalAlertBanner() {
   useEffect(() => {
     const fetchCriticalAlerts = async () => {
       try {
-        const res = await fetch('http://localhost:3000/api/alerts/recent?severity=critical&limit=3');
+        const token = localStorage.getItem('token');
+        const res = await fetch('http://localhost:3000/api/alerts/recent?severity=critical&limit=3', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
         const json = await res.json();
         if (json.success) {
           setCriticalAlerts(json.alerts || []);

@@ -19,7 +19,13 @@ export function AlertsTable() {
       const params = new URLSearchParams();
       if (filter.severity) params.append('severity', filter.severity);
 
-      const res = await fetch(`http://localhost:3000/api/alerts/recent?${params}`);
+      const token = localStorage.getItem('token');
+      const res = await fetch(`http://localhost:3000/api/alerts/recent?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
       const data = await res.json();
 
       if (data.success) {
@@ -92,9 +98,13 @@ export function AlertsTable() {
 
   const updateAlertStatus = async (alertId, newStatus) => {
     try {
+      const token = localStorage.getItem('token');
       const res = await fetch(`http://localhost:3000/api/alerts/${alertId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json' 
+        },
         body: JSON.stringify({ status: newStatus })
       });
 
