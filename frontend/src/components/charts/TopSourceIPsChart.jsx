@@ -29,7 +29,13 @@ export default function TopSourceIPsChart() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch('http://localhost:3000/api/logs/stats');
+        const token = localStorage.getItem('token');
+        const res = await fetch('http://localhost:3000/api/logs/stats', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
         const json = await res.json();
         
         if (json.success && json.stats?.top_source_ips) {

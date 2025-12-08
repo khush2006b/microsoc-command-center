@@ -35,7 +35,13 @@ export default function SeverityTrendChart() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch('http://localhost:3000/api/logs/stats');
+        const token = localStorage.getItem('token');
+        const res = await fetch('http://localhost:3000/api/logs/stats', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
         const json = await res.json();
         
         if (json.success && json.stats?.time_series_7d) {
@@ -62,8 +68,13 @@ export default function SeverityTrendChart() {
     if (!socket) return;
     
     const handleNewLog = () => {
-      // Refetch stats on new log
-      fetch('http://localhost:3000/api/logs/stats')
+      const token = localStorage.getItem('token');
+      fetch('http://localhost:3000/api/logs/stats', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
         .then(res => res.json())
         .then(json => {
           if (json.success && json.data.time_series_7d) {

@@ -135,9 +135,7 @@ body::after {
   letter-spacing: 0.02em;
 }
 
-/* ═════════════════════════════════════════════════════════════════════════════════
-   TOP NAVIGATION BAR - SINGLE, MINIMAL
-   ═════════════════════════════════════════════════════════════════════════════════ */
+
 
 .command-navbar {
   background: linear-gradient(90deg, #0a0a0a 0%, #0f0f0f 100%);
