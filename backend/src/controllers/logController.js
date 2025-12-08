@@ -1,5 +1,6 @@
 import Log from '../models/log.model.js';
 import { logQueue } from '../services/logQueue.js';
+import { getGeoLocation } from '../services/geoService.js';
 
 export const createLog = async (req, res) => {
   try {
@@ -16,6 +17,9 @@ export const createLog = async (req, res) => {
       });
     }
 
+    // Get geo-location for the source IP
+    const geoLocation = getGeoLocation(logData.source_ip);
+
     // Sanitize and normalize log data
     const sanitizedLog = {
       timestamp: logData.timestamp ? new Date(logData.timestamp) : new Date(),
@@ -23,7 +27,10 @@ export const createLog = async (req, res) => {
       source_ip: String(logData.source_ip).trim(),
       target_system: logData.target_system ? String(logData.target_system).trim() : 'unknown',
       severity: logData.severity ? String(logData.severity).toLowerCase() : 'low',
-      metadata: logData.metadata && typeof logData.metadata === 'object' ? logData.metadata : {}
+      metadata: {
+        ...(logData.metadata && typeof logData.metadata === 'object' ? logData.metadata : {}),
+        geo_location: geoLocation
+      }
     };
 
     // Push to queue for asynchronous processing
