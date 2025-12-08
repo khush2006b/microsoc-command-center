@@ -11,7 +11,7 @@ export default async function sqlInjectionRule({ log, ruleConfig, helpers }) {
   const { shouldGenerateAlert } = helpers;
   const { dedupTtlSeconds, mitre_id } = ruleConfig;
 
-  const isSqlAttackType = log.attack_type === "sql_injection";
+  const isSqlAttackType = log.event_type === "sql_injection";
   const matchesPattern = looksLikeSqlInjection(log);
 
   if (!isSqlAttackType && !matchesPattern) return null;
