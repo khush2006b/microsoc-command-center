@@ -78,7 +78,7 @@ const logSchema = new Schema(
       default: false
     },
 
-    // NEW: Helps debugging engine and tracking alert workflow
+    
     rule_name: {
       type: String,
       default: null // stores which rule triggered this log (if any)
