@@ -8,7 +8,10 @@ import TopSourceIPsChart from '../Charts/TopSourceIPsChart';
 import AlertsSeverityChart from '../Charts/AlertsSeverityChart';
 import AdvancedLogAnalysis from '../logs/AdvancedLogAnalysis';
 import SecurityAnalytics from '../analytics/SecurityAnalytics';
+import GeoMap from '../maps/GeoMap';
 import { useSocket } from '../../hooks/useSocket';
+import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const TAB_CONFIG = [
   { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
@@ -23,23 +26,57 @@ export function RangerDashboard() {
   const socket = useSocket();
   const [sharedLogs, setSharedLogs] = useState([]);
   const [sharedAlerts, setSharedAlerts] = useState([]);
+  const { user, logout, isAdmin, token } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
   
   const fetchData = useCallback(async () => {
     try {
+      // Get token from both context and localStorage as fallback
+      const authToken = token || localStorage.getItem('token');
+      
+      if (!authToken) {
+        console.error('No authentication token found');
+        navigate('/login');
+        return;
+      }
+
+      console.log('Fetching data with token:', authToken.substring(0, 20) + '...');
+
+      const headers = {
+        'Authorization': `Bearer ${authToken}`,
+        'Content-Type': 'application/json'
+      };
+
       const [logsRes, alertsRes] = await Promise.all([
-        fetch('http://localhost:3000/api/logs/recent?limit=1000'),
-        fetch('http://localhost:3000/api/alerts/recent?limit=100')
+        fetch('http://localhost:3000/api/logs/recent?limit=1000', { headers }),
+        fetch('http://localhost:3000/api/alerts/recent?limit=10', { headers })
       ]);
+
+      console.log('Logs response status:', logsRes.status);
+      console.log('Alerts response status:', alertsRes.status);
       
       const logsData = await logsRes.json();
       const alertsData = await alertsRes.json();
       
-      if (logsData.success) setSharedLogs(logsData.logs);
-      if (alertsData.success) setSharedAlerts(alertsData.alerts);
+      if (!logsData.success) {
+        console.error('Logs fetch error:', logsData.error);
+      }
+      
+      if (!alertsData.success) {
+        console.error('Alerts fetch error:', alertsData.error);
+      }
+      
+      if (logsData.success) setSharedLogs(logsData.logs || []);
+      if (alertsData.success) setSharedAlerts(alertsData.alerts || []);
     } catch (err) {
       console.error('Error fetching data:', err);
     }
-  }, []);
+  }, [navigate, token]);
   
   useEffect(() => {
     fetchData();
@@ -137,10 +174,34 @@ export function RangerDashboard() {
               ))}
             </nav>
 
-            {/* Status */}
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              <span className="text-xs text-gray-400 font-['Roboto_Mono'] tracking-wider">ONLINE</span>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-black/40 border border-white/10 rounded">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                <span className="text-xs text-gray-400 font-['Roboto_Mono']">{user?.email}</span>
+                {isAdmin() && (
+                  <span className="text-[10px] bg-red-500/20 text-red-400 px-2 py-0.5 rounded border border-red-500/30">ADMIN</span>
+                )}
+              </div>
+              {isAdmin() && (
+                <button
+                  onClick={() => navigate('/admin/pending-users')}
+                  className="px-3 py-1.5 text-xs font-['Orbitron'] tracking-wider text-cyan-400 hover:text-cyan-300 border border-cyan-500/30 hover:border-cyan-400/50 rounded transition-all"
+                >
+                  👥 USERS
+                </button>
+              )}
+              <button
+                onClick={() => navigate('/incidents')}
+                className="px-3 py-1.5 text-xs font-['Orbitron'] tracking-wider text-purple-400 hover:text-purple-300 border border-purple-500/30 hover:border-purple-400/50 rounded transition-all"
+              >
+                📋 INCIDENTS
+              </button>
+              <button
+                onClick={handleLogout}
+                className="px-3 py-1.5 text-xs font-['Orbitron'] tracking-wider text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-400/50 rounded transition-all"
+              >
+                🚪 LOGOUT
+              </button>
             </div>
           </div>
         </div>
@@ -398,20 +459,12 @@ function DashboardView({ logs = [] }) {
         
         <div className="flex gap-6 overflow-x-auto pb-4">
           {/* Global Threat Map */}
-          <div className="shrink-0 min-w-[800px] bg-black/30 backdrop-blur-md border border-red-500/20 rounded-lg p-6">
+          <div className="shrink-0 min-w-[1000px] bg-black/30 backdrop-blur-md border border-red-500/20 rounded-lg p-6">
             <h3 className="text-xs font-['Orbitron'] font-bold tracking-[0.2em] text-red-400 uppercase mb-4">
               🗺️ GLOBAL THREAT MAP
             </h3>
-            <div
-              className="w-full rounded-lg flex flex-col items-center justify-center p-8 text-center min-h-[250px]"
-              style={{
-                background: 'radial-gradient(circle, rgba(255, 28, 28, 0.1), rgba(20, 20, 20, 0.8))',
-                border: '1px dashed rgba(255, 28, 28, 0.3)',
-              }}
-            >
-              <div className="text-5xl mb-4">🌍</div>
-              <div className="text-sm font-['Roboto_Mono'] uppercase tracking-wide text-gray-400 mb-2">Global Attack Distribution</div>
-              <div className="text-xs text-gray-600">Interactive world map visualization • Coming soon</div>
+            <div className="w-full h-[500px]">
+              <GeoMap logs={logs} />
             </div>
           </div>
 

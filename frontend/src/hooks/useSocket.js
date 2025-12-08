@@ -35,6 +35,7 @@ export function useSocket() {
         console.error('❌ WebSocket connection error:', error);
       });
 
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSocket(globalSocket);
     } else {
       setSocket(globalSocket);
