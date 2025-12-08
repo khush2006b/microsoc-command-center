@@ -10,7 +10,7 @@ export default async function dataExfiltrationRule({ log, ruleConfig, helpers })
     mitre_id
   } = ruleConfig;
 
-  const type = log.attack_type;
+  const type = log.event_type;
   if (!["file_download", "generic_request"].includes(type)) return null;
 
   const size = Number(log.metadata?.response_size || 0);

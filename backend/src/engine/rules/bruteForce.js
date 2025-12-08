@@ -3,7 +3,7 @@ export default async function bruteForceRule({ log, now, ruleConfig, helpers }) 
   const { redis, shouldGenerateAlert } = helpers;
   const { windowSeconds, mediumThreshold, highThreshold, criticalThreshold, dedupTtlSeconds, mitre_id } = ruleConfig;
 
-  const type = log.attack_type;
+  const type = log.event_type;
   if (!["failed_login", "brute_force"].includes(type)) return null;
 
   const ip = log.source_ip || "unknown";

@@ -11,7 +11,7 @@ export default async function multiStageRule({ log, ruleConfig, helpers }) {
   const { windowSeconds, dedupTtlSeconds, mitre_id } = ruleConfig;
 
   const ip = log.source_ip || "unknown";
-  const type = log.attack_type;
+  const type = log.event_type;
 
   const stateKey = `chain:stage:${ip}`;
 
