@@ -23,9 +23,14 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
+        const token = localStorage.getItem('token');
+        const headers = {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        };
         const [logsRes, alertsRes] = await Promise.all([
-          fetch('http://localhost:3000/api/logs/stats'),
-          fetch('http://localhost:3000/api/alerts/stats')
+          fetch('http://localhost:3000/api/logs/stats', { headers }),
+          fetch('http://localhost:3000/api/alerts/stats', { headers })
         ]);
 
         const logsData = await logsRes.json();
@@ -51,8 +56,12 @@ export default function Dashboard() {
     if (!socket) return;
 
     const handleUpdate = () => {
-      // Refetch stats on any new log or alert
-      fetch('http://localhost:3000/api/logs/stats')
+      const token = localStorage.getItem('token');
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+      fetch('http://localhost:3000/api/logs/stats', { headers })
         .then(r => r.json())
         .then(data => {
           if (data.success) {
@@ -60,7 +69,7 @@ export default function Dashboard() {
           }
         });
 
-      fetch('http://localhost:3000/api/alerts/stats')
+      fetch('http://localhost:3000/api/alerts/stats', { headers })
         .then(r => r.json())
         .then(data => {
           if (data.success) {

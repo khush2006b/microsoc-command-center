@@ -207,7 +207,13 @@ export function SecurityAnalytics() {
   
   const fetchLogs = useCallback(async () => {
     try {
-      const res = await fetch(`http://localhost:3000/api/logs/recent?limit=1000`);
+      const token = localStorage.getItem('token');
+      const res = await fetch(`http://localhost:3000/api/logs/recent?limit=1000`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
       const data = await res.json();
       if (data.success) {
         setLogs(data.logs);
