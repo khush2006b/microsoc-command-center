@@ -227,7 +227,13 @@ export function RangerAlertsPanel({ initialAlerts = [] }) {
     
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:3000/api/alerts?limit=10`);
+      const token = localStorage.getItem('token');
+      const res = await fetch(`http://localhost:3000/api/alerts/recent?limit=10`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
       const data = await res.json();
 
       if (data.success) {
