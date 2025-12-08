@@ -10,10 +10,10 @@ import connectDB from './config/db.js';
 import logRoutes from './routes/logs.route.js';
 import alertRoutes from './routes/alert.route.js';
 import incidentRoutes from './routes/incident.route.js';
+import authRoutes from './routes/auth.routes.js';
+import adminRoutes from './routes/admin.routes.js';
+import { authMiddleware, permissionCheck } from './middleware/authMiddleware.js';
 
-// --- 1. CONFIGURATION ---
-
-// Load environment variables
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
@@ -34,7 +34,6 @@ if (FRONTEND_URL && FRONTEND_URL !== 'http://localhost:5173') {
   corsOrigins.push(FRONTEND_URL);
 }
 
-// --- 2. INITIALIZATION ---
 
 const app = express();
 const server = http.createServer(app);
@@ -63,11 +62,11 @@ const io = new Server(server, {
   transports: ['websocket', 'polling']
 });
 
-// --- 3. DATABASE CONNECTION ---
+
 
 connectDB(MONGODB_URI);
 
-// --- 4. MIDDLEWARE ---
+
 
 app.use(cors({
   origin: corsOrigins,
@@ -81,8 +80,6 @@ app.use((req, res, next) => {
   req.io = io;
   next();
 });
-
-// --- 5. SOCKET.IO CONNECTION ---
 
 io.on('connection', (socket) => {
   console.log(`⚡ Client connected: ${socket.id}`);
@@ -114,20 +111,21 @@ io.on('connection', (socket) => {
   });
 });
 
-// --- 6. ROUTES ---
-
-// Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date() });
 });
 
-// API Routes
-app.use('/api/logs', logRoutes);
-app.use('/logs', logRoutes); // Alias for simulator compatibility
-app.use('/api/alerts', alertRoutes);
-app.use('/api/incidents', incidentRoutes);
+// Public routes (no authentication required)
+app.use('/api/auth', authRoutes);
 
-// --- 7. ERROR HANDLING ---
+// Protected Admin routes
+app.use('/api/admin', adminRoutes);
+
+// Protected API Routes (require authentication and specific permissions)
+app.use('/api/logs', authMiddleware, permissionCheck('viewLogs'), logRoutes);
+app.use('/logs', logRoutes); // Alias for simulator compatibility (no auth)
+app.use('/api/alerts', authMiddleware, permissionCheck('viewAlerts'), alertRoutes);
+app.use('/api/incidents', authMiddleware, permissionCheck('viewIncidents'), incidentRoutes);
 
 app.use((err, req, res, next) => {
   console.error('❌ Unhandled error:', err.stack);
@@ -145,27 +143,30 @@ app.use('*', (req, res) => {
     path: req.originalUrl,
     available_endpoints: [
       'GET /health',
-      'POST /api/logs',
-      'GET /api/logs/recent',
-      'GET /api/logs/stats',
-      'GET /api/alerts/recent',
-      'GET /api/alerts/stats',
-      'GET /api/incidents'
+      'POST /api/auth/signup',
+      'POST /api/auth/login',
+      'GET /api/auth/profile (requires auth)',
+      'GET /api/admin/pending-users (admin only)',
+      'GET /api/admin/users (admin only)',
+      'POST /api/admin/approve/:userId (admin only)',
+      'POST /api/admin/reject/:userId (admin only)',
+      'PATCH /api/admin/update-permissions/:userId (admin only)',
+      'POST /api/logs (simulator)',
+      'GET /api/logs/recent (requires auth + viewLogs)',
+      'GET /api/logs/stats (requires auth + viewLogs)',
+      'GET /api/alerts/recent (requires auth + viewAlerts)',
+      'GET /api/alerts/stats (requires auth + viewAlerts)',
+      'GET /api/incidents (requires auth + viewIncidents)'
     ]
   });
 });
 
-// --- 8. START SERVER ---
-
 server.listen(PORT, () => {
   console.log(`
-╔════════════════════════════════════════╗
-║  🚀 MicroSOC Command Center Running    ║
-╚════════════════════════════════════════╝
-📍 API:        http://localhost:${PORT}
-🌐 Frontend:   ${FRONTEND_URL}
-💾 MongoDB:    ${MONGODB_URI}
-📡 WebSocket:  ws://localhost:${PORT}
+ API:        http://localhost:${PORT}
+ Frontend:   ${FRONTEND_URL}
+ MongoDB:    ${MONGODB_URI}
+ WebSocket:  ws://localhost:${PORT}
   `);
 });
 
