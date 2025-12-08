@@ -11,7 +11,7 @@ export default async function xssRule({ log, ruleConfig, helpers }) {
   const { shouldGenerateAlert } = helpers;
   const { dedupTtlSeconds, mitre_id } = ruleConfig;
 
-  const isXssAttackType = log.attack_type === "xss";
+  const isXssAttackType = log.event_type === "xss";
   const matchesPattern = looksLikeXss(log);
 
   if (!isXssAttackType && !matchesPattern) return null;

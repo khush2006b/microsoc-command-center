@@ -3,7 +3,7 @@ export default async function portScanRule({ log, ruleConfig, helpers }) {
   const { redis, shouldGenerateAlert } = helpers;
   const { windowSeconds, threshold, dedupTtlSeconds, mitre_id } = ruleConfig;
 
-  if (log.attack_type !== "port_scan") return null;
+  if (log.event_type !== "port_scan") return null;
   const ip = log.source_ip || "unknown";
   const port = log.metadata?.port;
   if (!port) return null;
