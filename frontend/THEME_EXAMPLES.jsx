@@ -19,10 +19,6 @@ import {
 import { rangerColors } from './src/theme/rangerTheme';
 import useSocket from './hooks/useSocket';
 
-// ============================================
-// EXAMPLE 1: Simple Dashboard with Stats
-// ============================================
-
 export function StatsView() {
   return (
     <div className="p-6 space-y-6">
@@ -64,10 +60,6 @@ export function StatsView() {
   );
 }
 
-// ============================================
-// EXAMPLE 2: Alert Management Interface
-// ============================================
-
 export function AlertManagement() {
   const [alerts, setAlerts] = useState([
     { id: 1, title: 'Brute Force Attack', severity: 'critical', dismissed: false },
@@ -94,10 +86,6 @@ export function AlertManagement() {
     </div>
   );
 }
-
-// ============================================
-// EXAMPLE 3: Real-Time Log Stream
-// ============================================
 
 export function LogStream() {
   const socket = useSocket();
@@ -136,10 +124,6 @@ export function LogStream() {
   );
 }
 
-// ============================================
-// EXAMPLE 4: Custom Button Group
-// ============================================
-
 export function ActionBar() {
   return (
     <div className="flex gap-2 p-4">
@@ -155,10 +139,6 @@ export function ActionBar() {
     </div>
   );
 }
-
-// ============================================
-// EXAMPLE 5: Status Dashboard
-// ============================================
 
 export function SystemStatus() {
   const systems = [
@@ -186,10 +166,6 @@ export function SystemStatus() {
   );
 }
 
-// ============================================
-// EXAMPLE 6: MITRE ATT&CK Tags
-// ============================================
-
 export function ThreatIntelligence() {
   const techniques = [
     'T1046 - Network Service Scanning',
@@ -210,10 +186,6 @@ export function ThreatIntelligence() {
     </HologramCard>
   );
 }
-
-// ============================================
-// EXAMPLE 7: Timeline View
-// ============================================
 
 export function IncidentTimeline() {
   const events = [
@@ -248,10 +220,6 @@ export function IncidentTimeline() {
     </HologramCard>
   );
 }
-
-// ============================================
-// EXAMPLE 8: Data Table with Severity Coloring
-// ============================================
 
 export function IncidentsTable() {
   const incidents = [
@@ -295,11 +263,9 @@ export function IncidentsTable() {
   );
 }
 
-// ============================================
-// EXAMPLE 9: Custom Modal/Dialog
-// ============================================
+export function AlertModal({ isOpen, onClose, incident }) {
+  if (!isOpen || !incident) return null;
 
-export function IncidentDetailsModal({ incident, onClose }) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
       <HologramCard
@@ -341,10 +307,6 @@ export function IncidentDetailsModal({ incident, onClose }) {
     </div>
   );
 }
-
-// ============================================
-// EXAMPLE 10: Complete Settings Panel
-// ============================================
 
 export function SettingsPanel() {
   const [settings, setSettings] = useState({
@@ -406,6 +368,6 @@ export default {
   ThreatIntelligence,
   IncidentTimeline,
   IncidentsTable,
-  IncidentDetailsModal,
+  AlertModal,
   SettingsPanel,
 };
