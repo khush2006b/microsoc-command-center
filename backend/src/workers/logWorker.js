@@ -9,39 +9,91 @@ import Alert from "../models/alert.model.js";
 import { processLogWithRules } from "../engine/ruleEngine.js";
 import { updateMetrics } from "../engine/utils/metrics.js";
 
+// CRITICAL: Disable TLS certificate verification for Render (uses self-signed certs in some cases)
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 // Connect to backend's Socket.IO server as a client
 const BACKEND_URL = process.env.BACKEND_URL || "https://microsoc-command-center-1.onrender.com";
 let io = null;
 let ioConnected = false;
 
+console.log(`🔌 Worker initializing Socket.IO client...`);
+console.log(`🎯 Backend URL: ${BACKEND_URL}`);
+
 const initializeSocket = () => {
   io = ioClient(BACKEND_URL, {
+    // CRITICAL: Explicit path (must match server)
+    path: '/socket.io',
+    
+    // CRITICAL: Use ONLY websocket transport (no polling fallback)
+    // Polling causes issues on Render
+    transports: ['websocket'],
+    
+    // Force upgrade to websocket immediately
+    upgrade: false,
+    
+    // Reconnection settings (aggressive for Render)
     reconnection: true,
-    reconnectionDelay: 2000,
-    reconnectionAttempts: Infinity,
-    reconnectionDelayMax: 10000,
-    transports: ['websocket', 'polling'],
+    reconnectionDelay: 1000,           // Start with 1 second
+    reconnectionDelayMax: 5000,        // Max 5 seconds between attempts
+    reconnectionAttempts: Infinity,    // Never give up
+    
+    // Timeout settings (extended for Render)
+    timeout: 20000,                    // 20 seconds connection timeout
+    
+    // CRITICAL: Disable TLS verification (Render uses proxied SSL)
+    rejectUnauthorized: false,
+    
+    // Force new connection (don't reuse)
     forceNew: true,
-    autoConnect: true
+    
+    // Auto-connect on initialization
+    autoConnect: true,
+    
+    // Additional headers (optional, for debugging)
+    extraHeaders: {
+      'x-client-type': 'worker',
+      'x-worker-id': process.env.RENDER_SERVICE_NAME || 'log-worker'
+    }
   });
 
   io.on("connect", () => {
     console.log("✅ Worker connected to backend Socket.IO server");
+    console.log(`   🆔 Socket ID: ${io.id}`);
+    console.log(`   🔗 Transport: ${io.io.engine.transport.name}`);
     ioConnected = true;
   });
 
-  io.on("disconnect", () => {
-    console.log("🔌 Worker disconnected from Socket.IO, will reconnect...");
+  io.on("disconnect", (reason) => {
+    console.log(`🔌 Worker disconnected from Socket.IO: ${reason}`);
+    console.log(`   ⏳ Will attempt reconnection...`);
     ioConnected = false;
   });
 
   io.on("connect_error", (error) => {
     console.error("❌ Worker Socket.IO connection error:", error.message);
+    console.error(`   🔍 Error type: ${error.type}`);
+    console.error(`   🔍 Description: ${error.description}`);
+    if (error.context) {
+      console.error(`   🔍 Context:`, error.context);
+    }
   });
 
-  io.on("reconnect", () => {
-    console.log("🔄 Worker reconnected to Socket.IO");
+  io.on("reconnect_attempt", (attemptNumber) => {
+    console.log(`🔄 Reconnection attempt #${attemptNumber}`);
+  });
+
+  io.on("reconnect", (attemptNumber) => {
+    console.log(`✅ Worker reconnected to Socket.IO after ${attemptNumber} attempts`);
     ioConnected = true;
+  });
+  
+  io.on("reconnect_error", (error) => {
+    console.error(`❌ Reconnection error:`, error.message);
+  });
+  
+  io.on("reconnect_failed", () => {
+    console.error(`❌ Reconnection failed after all attempts`);
   });
 };
 

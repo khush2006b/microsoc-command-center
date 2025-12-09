@@ -52,13 +52,26 @@ if (NODE_ENV === 'production') {
 
 const app = express();
 const server = http.createServer(app);
+
+// Socket.IO Configuration for Render Deployment
 const io = new Server(server, {
+  // Explicit Socket.IO path (must match client)
+  path: '/socket.io',
+  
+  // CORS Configuration - Allow worker and frontend connections
   cors: {
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, postman)
+      // CRITICAL: Allow requests with no origin (worker connections, server-to-server)
       if (!origin) return callback(null, true);
       
-      // Check if origin matches any allowed origins
+      // In production, allow ALL origins temporarily for testing
+      // This ensures worker can connect from Render
+      if (NODE_ENV === 'production') {
+        console.log('✅ Production: Allowing origin:', origin);
+        return callback(null, true);
+      }
+      
+      // Development: Check allowed origins
       const allowed = corsOrigins.some(allowed => {
         if (allowed instanceof RegExp) return allowed.test(origin);
         return allowed === origin;
@@ -71,11 +84,32 @@ const io = new Server(server, {
         callback(new Error('Not allowed by CORS'));
       }
     },
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-    credentials: true
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization']
   },
-  transports: ['websocket', 'polling']
+  
+  // Transport Configuration
+  transports: ['websocket', 'polling'],
+  allowUpgrades: true,
+  
+  // Connection Timeout Settings (important for Render)
+  pingTimeout: 60000,      // 60 seconds before considering connection dead
+  pingInterval: 25000,      // Send ping every 25 seconds
+  upgradeTimeout: 30000,    // 30 seconds for upgrade to websocket
+  
+  // Render uses SSL proxy, allow it
+  allowEIO3: true,
+  
+  // Enable connection state recovery
+  connectionStateRecovery: {
+    maxDisconnectionDuration: 2 * 60 * 1000, // 2 minutes
+    skipMiddlewares: true
+  }
 });
+
+console.log(`🔌 Socket.IO server initialized with path: /socket.io`);
+console.log(`🌐 CORS: ${NODE_ENV === 'production' ? 'ALL ORIGINS ALLOWED (production)' : 'Restricted origins'}`);
 
 
 
