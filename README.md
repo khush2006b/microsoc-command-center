@@ -232,7 +232,49 @@ node index.js sqlInjection          # SQL injection sequence
 node index.js incident:multistage   # APT kill chain
 ```
 
-### 10. Power Ranger Theme System
+### 10. OTP Email Verification System 📧
+**Secure Analyst Signup with Email Verification**
+
+**Features**:
+- **6-Digit OTP**: Cryptographically secure OTP generation using `crypto.randomInt()`
+- **10-Minute Expiry**: Automatic timeout for enhanced security
+- **Professional Email Templates**: Cyber-themed HTML emails with MicroSOC branding
+- **Two-Step Signup Flow**: Signup → OTP Verification → Admin Approval
+- **Resend Functionality**: Users can request new OTP if expired
+- **Welcome Email**: Sent automatically after successful verification
+- **Real-Time Countdown**: Live timer showing OTP validity period
+
+**Email Service Integration**:
+- **Gmail Support**: Uses Google App Passwords for secure authentication
+- **Custom SMTP**: Support for any SMTP provider
+- **Nodemailer**: Industry-standard email delivery
+
+**Security Features**:
+- OTP fields excluded from database queries (`select: false`)
+- Single-use OTPs (cleared after verification)
+- Email validation before account creation
+- Failed email sends rollback user creation (atomic operations)
+- Rate limiting ready (prevent abuse)
+
+**Workflow**:
+```
+User Signup → Generate OTP → Send Email → User Enters OTP →
+Verify OTP → Welcome Email → Account Pending Admin Approval
+```
+
+**API Endpoints**:
+- `POST /api/auth/signup` - Send OTP to email
+- `POST /api/auth/verify-otp` - Verify OTP code
+- `POST /api/auth/resend-otp` - Resend OTP if expired
+
+**Configuration** (`.env`):
+```env
+EMAIL_SERVICE=gmail
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASSWORD=your-app-password
+```
+
+### 11. Power Ranger Theme System
 - **Ranger Theme**: Cyberpunk aesthetics inspired by Power Rangers
 - **Morphin Grid Background**: Subtle grid overlay (0.03 opacity)
 - **Neon Accents**: Red (#ef4444), Cyan (#06b6d4), Orange (#f97316)
@@ -1248,6 +1290,8 @@ socket.on('stats:updated', (stats) => {
 
 ## 🔧 Setup Instructions
 
+> **📦 Production Deployment**: For deploying to Render (or other cloud platforms), see [RENDER_DEPLOYMENT.md](./RENDER_DEPLOYMENT.md) for complete step-by-step instructions.
+
 ### Prerequisites
 
 Ensure you have the following installed:
@@ -1583,103 +1627,46 @@ lsof -ti:3000 | xargs kill -9
 ## 📸 Screenshots
 
 ### 1. Ranger Command Dashboard
-![Dashboard Overview](docs/screenshots/dashboard.png)
-*Real-time metrics, activity timeline, and alert panel with Power Ranger theme*
+![Dashboard Overview](https://i.postimg.cc/ZK5kHXhJ/image.png)
+*Real-time security metrics, analytics visualizations, and activity monitoring with Power Ranger theme*
 
 **Key Features Shown**:
-- Stat cards with live counts (Total Events, Critical Alerts, High Threats, Unique Sources)
-- Activity timeline with last 10 events
-- Morphin Grid background effect
-- Neon accent colors (red, cyan, orange)
-- WebSocket connection status indicator
+- Comprehensive security metrics (Total Events: 500, Critical Alerts: 5, High Threats: 109, Unique Sources: 140)
+- Attack type distribution pie chart
+- Severity distribution bar graph
+- Attack timeline with 5-minute bucket aggregation
+- Live alert stream panel
+- Morphin Grid background with neon accents
 
-### 2. Advanced Log Analysis
-![Log Analysis](docs/screenshots/log-analysis.png)
-*Professional SIEM interface with filtering, search, and IP geolocation*
-
-**Key Features Shown**:
-- Advanced filter sidebar (severity, attack type, time range)
-- Real-time IP geolocation with country, city, ISP
-- Search bar with fuzzy matching
-- Expandable log rows with full payload
-- Export functionality (JSON/CSV)
-- Custom cyan-themed scrollbar
-
-### 3. Security Analytics Dashboard
-![Analytics](docs/screenshots/analytics.png)
-*8 comprehensive visualization modules with enterprise-grade charts*
+### 2. Incident Management System
+![Incident Management](https://i.postimg.cc/ZnNwJB4H/image.png)
+*Advanced incident tracking with correlation, assignment, and resolution workflows*
 
 **Key Features Shown**:
-- Attack Type Distribution (Pie Chart)
-- Severity Distribution (Bar Chart)
-- Attack Timeline (5-minute aggregation)
-- Top Attacker IPs (Ranked list with flags)
-- Targeted Endpoints (Horizontal bar chart)
-- User Agent Analysis
-- Incident Response Metrics (MTTR, Resolution Rate)
-- Time range selectors (1h, 24h, 7d, 30d)
+- Incident list with severity indicators (HIGH, CRITICAL)
+- Status tracking (OPEN, RESOLVED)
+- Assignment to analysts (WOWO, Khush Jain)
+- Timestamp tracking for created incidents
+- Correlation detection (3 SQL injection attacks)
+- Severity and status filter dropdowns
+- Professional cyber-themed interface
 
-### 4. AI-Powered Remediation
-![AI Remediation](docs/screenshots/ai-remediation.png)
-*LLM-generated remediation guidance with industry standards*
-
-**Key Features Shown**:
-- Immediate action items
-- Detailed step-by-step remediation
-- Preventive measures
-- Compliance standards (MITRE ATT&CK, OWASP, NIST)
-- Estimated time to resolve
-- Regeneration button
-- Custom scrollbar for long content
-
-### 5. Incident Management
-![Incident Management](docs/screenshots/incidents.png)
-*Comprehensive incident tracking with assignment and SLA monitoring*
+### 3. AI-Powered Remediation Interface
+![AI Remediation](https://i.postimg.cc/brj5fG4T/image.png)
+*LLM-generated remediation guidance with industry standards and actionable steps*
 
 **Key Features Shown**:
-- Incident status workflow (open → investigating → mitigating → resolved)
-- Assignment to analysts
-- Linked alerts aggregation
-- Evidence collection
-- MTTR calculations
-- Status update buttons
-
-### 6. Real-Time Alerts Panel
-![Alerts Panel](docs/screenshots/alerts-panel.png)
-*Live alert feed with animations and severity indicators*
-
-**Key Features Shown**:
-- Real-time alert stream via WebSocket
-- Severity-based color coding
-- Alert detail modal
-- Status update buttons (in-progress, resolved, closed)
-- Soft delete with audit trail
-- Timestamp tracking
-
-### 7. Attack Simulation
-![Attack Simulator](docs/screenshots/simulator.png)
-*Realistic attack traffic generation for testing*
-
-**Key Features Shown**:
-- Continuous attack mode
-- Various attack types (SQL injection, XSS, brute force, port scan)
-- Public IP generation for geolocation
-- Configurable attack intervals
-- Multi-stage APT simulation
-
-### Demo GIFs
-
-#### Real-Time Log Ingestion
-![Log Ingestion Demo](docs/gifs/log-ingestion.gif)
-*Watch logs flow in real-time with automatic alert creation*
-
-#### AI Remediation Generation
-![AI Remediation Demo](docs/gifs/ai-remediation.gif)
-*See AI analyze incident and generate structured remediation steps*
-
-#### Dashboard Live Updates
-![Dashboard Live Updates](docs/gifs/dashboard-live.gif)
-*Real-time metrics and charts updating via WebSocket*
+- Executive summary of the incident
+- Risk assessment (CRITICAL level)
+- Immediate action items (numbered steps)
+- Long-term improvement recommendations
+- MITRE ATT&CK framework integration
+- OWASP Top 10 compliance mapping
+- NIST cybersecurity standards
+- CIS Controls alignment
+- Estimated resolution time
+- Regenerate button for alternative solutions
+- Fallback mode indicator when LLM unavailable
 
 ---
 
@@ -1917,48 +1904,12 @@ const renderLog = (log) => {
 
 ## 👥 Team Members
 
-### Development Team
-
-| Name | Registration Number | Role & Responsibilities |
-|------|---------------------|-------------------------|
-| **Khush Jain** | 20243135 | **Team Lead & Full-Stack Developer**<br/>• System architecture design<br/>• Backend API development (Express.js)<br/>• MongoDB schema design & optimization<br/>• Queue system implementation (BullMQ + Redis)<br/>• WebSocket real-time communication<br/>• Docker containerization<br/>• Project coordination |
-| **Shraddha Sharma** | 20243264 | **Frontend Developer & UI/UX Designer**<br/>• React component development<br/>• Power Ranger theme design<br/>• Tailwind CSS styling<br/>• Recharts integration<br/>• Responsive design implementation<br/>• User experience optimization<br/>• Frontend state management |
-| **Shreyansh Jain** | 20243269 | **AI/ML Engineer & Backend Developer**<br/>• AI remediation engine development<br/>• LLM integration (Gemini, OpenAI, Groq, Ollama)<br/>• Prompt engineering<br/>• Caching strategy implementation<br/>• Threat detection rule development<br/>• Attack simulation scripts<br/>• Performance optimization |
-| **Anshul Rathore** | 20245020 | **DevOps & Security Engineer**<br/>• Deployment pipeline setup<br/>• Docker Compose orchestration<br/>• MongoDB Atlas configuration<br/>• Redis setup & monitoring<br/>• Security best practices implementation<br/>• Documentation (README, API docs)<br/>• Testing & quality assurance |
-
-### Contribution Breakdown
-
-**Khush Jain (Team Lead)**:
-- Core backend infrastructure (70+ commits)
-- Log ingestion pipeline with validation
-- Alert & incident management APIs
-- WebSocket event system
-- Worker process for rule execution
-- Database connection & error handling
-
-**Shraddha Sharma**:
-- All frontend React components (45+ commits)
-- Dashboard UI with tab navigation
-- Advanced log analysis interface
-- Security analytics visualizations
-- Real-time alert panel
-- Responsive mobile design
-
-**Shreyansh Jain**:
-- Complete AI remediation engine (50+ commits)
-- Multi-LLM integration and fallback system
-- 7 threat detection rules
-- Statistical anomaly detection
-- Attack simulator with realistic patterns
-- Prompt engineering for optimal LLM responses
-
-**Anshul Rathore**:
-- Docker configuration & compose files (30+ commits)
-- Environment setup documentation
-- MongoDB Atlas deployment
-- Redis configuration
-- API documentation
-- Testing scenarios & validation scripts
+| Name | Registration Number |
+|------|---------------------|
+| **Khush Jain** | 20243135 |
+| **Shraddha Sharma** | 20243264 |
+| **Shreyansh Jain** | 20243269 |
+| **Anshul Rathore** | 20245020 |
 
 ---
 

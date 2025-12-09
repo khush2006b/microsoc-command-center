@@ -12,13 +12,15 @@ import alertRoutes from './routes/alert.route.js';
 import incidentRoutes from './routes/incident.route.js';
 import authRoutes from './routes/auth.routes.js';
 import adminRoutes from './routes/admin.routes.js';
+import simulatorRoutes from './routes/simulator.route.js';
 import { authMiddleware, permissionCheck } from './middleware/authMiddleware.js';
 
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/microsoc';
+const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/microsoc';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // Allow multiple frontend ports for development
 const corsOrigins = [
@@ -30,8 +32,21 @@ const corsOrigins = [
   'http://127.0.0.1:5175',
   /^http:\/\/.*:3000$/, // Allow worker and other backend connections
 ];
+
+// Add production frontend URL
 if (FRONTEND_URL && FRONTEND_URL !== 'http://localhost:5173') {
   corsOrigins.push(FRONTEND_URL);
+  // Also allow without trailing slash
+  if (FRONTEND_URL.endsWith('/')) {
+    corsOrigins.push(FRONTEND_URL.slice(0, -1));
+  } else {
+    corsOrigins.push(FRONTEND_URL + '/');
+  }
+}
+
+// In production, allow all Render.com origins
+if (NODE_ENV === 'production') {
+  corsOrigins.push(/^https:\/\/.*\.onrender\.com$/);
 }
 
 
@@ -112,11 +127,24 @@ io.on('connection', (socket) => {
 });
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date() });
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date(),
+    environment: NODE_ENV,
+    port: PORT,
+    services: {
+      mongodb: 'connected',
+      redis: 'connected',
+      websocket: 'active'
+    }
+  });
 });
 
 // Public routes (no authentication required)
 app.use('/api/auth', authRoutes);
+
+// Simulator routes (public for testing, can be protected later)
+app.use('/api/simulator', simulatorRoutes);
 
 // Protected Admin routes
 app.use('/api/admin', adminRoutes);
@@ -161,12 +189,19 @@ app.use('*', (req, res) => {
   });
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`
- API:        http://localhost:${PORT}
- Frontend:   ${FRONTEND_URL}
- MongoDB:    ${MONGODB_URI}
- WebSocket:  ws://localhost:${PORT}
+🚀 MicroSOC Backend Server Started
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ Environment:  ${NODE_ENV}
+ Port:         ${PORT}
+ Frontend:     ${FRONTEND_URL}
+ MongoDB:      ${MONGODB_URI ? '✅ Connected' : '❌ Not configured'}
+ Redis:        ${process.env.REDIS_URL ? '✅ Connected' : '❌ Not configured'}
+ Email:        ${process.env.EMAIL_USER ? '✅ Configured' : '❌ Not configured'}
+ WebSocket:    ws://0.0.0.0:${PORT}
+ Health:       /health
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   `);
 });
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSocket } from '../../hooks/useSocket';
+import { API_BASE_URL } from '../../config/api';
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
@@ -208,7 +209,7 @@ export function SecurityAnalytics() {
   const fetchLogs = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:3000/api/logs/recent?limit=1000`, {
+      const res = await fetch(`${API_BASE_URL}/api/logs/recent?limit=1000`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

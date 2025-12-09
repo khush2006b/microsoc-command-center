@@ -12,6 +12,7 @@ import GeoMap from '../maps/GeoMap';
 import { useSocket } from '../../hooks/useSocket';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../../config/api';
 
 const TAB_CONFIG = [
   { id: 'dashboard', label: 'Dashboard', icon: '🏠', permission: 'viewAnalytics' },
@@ -66,8 +67,8 @@ export function RangerDashboard() {
       };
 
       const [logsRes, alertsRes] = await Promise.all([
-        fetch('http://localhost:3000/api/logs/recent?limit=1000', { headers }),
-        fetch('http://localhost:3000/api/alerts/recent?limit=10', { headers })
+        fetch(`${API_BASE_URL}/api/logs/recent?limit=1000`, { headers }),
+        fetch(`${API_BASE_URL}/api/alerts/recent?limit=10`, { headers })
       ]);
 
       console.log('Logs response status:', logsRes.status);
@@ -218,6 +219,12 @@ export function RangerDashboard() {
                   📋 INCIDENTS
                 </button>
               )}
+              <button
+                onClick={() => navigate('/simulator')}
+                className="px-3 py-1.5 text-xs font-['Orbitron'] tracking-wider text-orange-400 hover:text-orange-300 border border-orange-500/30 hover:border-orange-400/50 rounded transition-all"
+              >
+                ⚡ SIMULATOR
+              </button>
               <button
                 onClick={handleLogout}
                 className="px-3 py-1.5 text-xs font-['Orbitron'] tracking-wider text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-400/50 rounded transition-all"

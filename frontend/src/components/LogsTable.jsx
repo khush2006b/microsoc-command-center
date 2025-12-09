@@ -3,6 +3,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import useSocket from '../hooks/useSocket';
+import { API_BASE_URL } from '../config/api';
 import './LogsTable.css';
 
 export function LogsTable() {
@@ -20,7 +21,7 @@ export function LogsTable() {
       if (filter.attackType) params.append('event_type', filter.attackType);
 
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:3000/api/logs/recent?${params}`, {
+      const res = await fetch(`${API_BASE_URL}/api/logs/recent?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

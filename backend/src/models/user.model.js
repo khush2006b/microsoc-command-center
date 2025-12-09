@@ -69,7 +69,23 @@ const userSchema = new mongoose.Schema({
     timestamp: Date,
     ip: String,
     userAgent: String
-  }]
+  }],
+  // OTP verification fields
+  otp: {
+    type: String,
+    select: false
+  },
+  otpExpiry: {
+    type: Date,
+    select: false
+  },
+  isEmailVerified: {
+    type: Boolean,
+    default: false
+  },
+  emailVerifiedAt: {
+    type: Date
+  }
 }, {
   timestamps: true
 });

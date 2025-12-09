@@ -8,6 +8,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { useSocket } from '../../hooks/useSocket';
+import { API_BASE_URL } from '../../config/api';
 
 const COLORS = {
   critical: '#dc2626',
@@ -38,7 +39,7 @@ export default function AlertsSeverityChart() {
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:3000/api/alerts/stats', {
+      const res = await fetch(`${API_BASE_URL}/api/alerts/stats`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

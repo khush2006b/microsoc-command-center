@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { API_BASE_URL } from '../../config/api';
 import {
   BarChart,
   Bar,
@@ -30,7 +31,7 @@ export default function TopSourceIPsChart() {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:3000/api/logs/stats', {
+        const res = await fetch(`${API_BASE_URL}/api/logs/stats`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'

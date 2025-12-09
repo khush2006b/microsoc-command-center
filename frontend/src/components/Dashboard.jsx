@@ -9,6 +9,7 @@ import SeverityTrendChart from './Charts/SeverityTrendChart';
 import TopSourceIPsChart from './Charts/TopSourceIPsChart';
 import AlertsSeverityChart from './Charts/AlertsSeverityChart';
 import { useSocket } from '../hooks/useSocket';
+import { API_BASE_URL } from '../config/api';
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -29,8 +30,8 @@ export default function Dashboard() {
           'Content-Type': 'application/json'
         };
         const [logsRes, alertsRes] = await Promise.all([
-          fetch('http://localhost:3000/api/logs/stats', { headers }),
-          fetch('http://localhost:3000/api/alerts/stats', { headers })
+          fetch(`${API_BASE_URL}/api/logs/stats`, { headers }),
+          fetch(`${API_BASE_URL}/api/alerts/stats`, { headers })
         ]);
 
         const logsData = await logsRes.json();
@@ -61,7 +62,7 @@ export default function Dashboard() {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       };
-      fetch('http://localhost:3000/api/logs/stats', { headers })
+      fetch(`${API_BASE_URL}/api/logs/stats`, { headers })
         .then(r => r.json())
         .then(data => {
           if (data.success) {
@@ -69,7 +70,7 @@ export default function Dashboard() {
           }
         });
 
-      fetch('http://localhost:3000/api/alerts/stats', { headers })
+      fetch(`${API_BASE_URL}/api/alerts/stats`, { headers })
         .then(r => r.json())
         .then(data => {
           if (data.success) {

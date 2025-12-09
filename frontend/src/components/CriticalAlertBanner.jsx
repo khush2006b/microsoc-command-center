@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSocket } from '../hooks/useSocket';
+import { API_BASE_URL } from '../config/api';
 
 export default function CriticalAlertBanner() {
   const [criticalAlerts, setCriticalAlerts] = useState([]);
@@ -9,7 +10,7 @@ export default function CriticalAlertBanner() {
     const fetchCriticalAlerts = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:3000/api/alerts/recent?severity=critical&limit=3', {
+        const res = await fetch(`${API_BASE_URL}/api/alerts/recent?severity=critical&limit=3`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'

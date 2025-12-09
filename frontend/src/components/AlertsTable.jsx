@@ -3,6 +3,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import useSocket from '../hooks/useSocket';
+import { API_BASE_URL } from '../config/api';
 import './AlertsTable.css';
 
 export function AlertsTable() {
@@ -20,7 +21,7 @@ export function AlertsTable() {
       if (filter.severity) params.append('severity', filter.severity);
 
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:3000/api/alerts/recent?${params}`, {
+      const res = await fetch(`${API_BASE_URL}/api/alerts/recent?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -99,7 +100,7 @@ export function AlertsTable() {
   const updateAlertStatus = async (alertId, newStatus) => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:3000/api/alerts/${alertId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/alerts/${alertId}`, {
         method: 'PATCH',
         headers: { 
           'Authorization': `Bearer ${token}`,

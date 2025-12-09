@@ -9,6 +9,7 @@ import { RangerDashboard } from './components/layout/CleanDashboard';
 import PendingUsersPanel from './components/admin/PendingUsersPanel';
 import { IncidentList } from './components/incidents/IncidentList';
 import { IncidentDetails } from './components/incidents/IncidentDetails';
+import AttackSimulator from './pages/AttackSimulator';
 
 function App() {
   return (
@@ -54,6 +55,11 @@ function App() {
                 </div>
               </ProtectedRoute>
             }
+          />
+          
+          <Route
+            path="/simulator"
+            element={<AttackSimulator />}
           />
           
           <Route path="/" element={<Navigate to="/dashboard" replace />} />

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { SeverityBadge, HologramCard, TechTag } from '../theme/ThemeComponents';
 import { rangerColors, rangerShadows } from '../../theme/rangerTheme';
 import { useSocket } from '../../hooks/useSocket';
+import { API_BASE_URL } from '../../config/api';
 
 const AlertCard = ({ alert, isNew = false }) => {
   const [shake, setShake] = useState(isNew && alert.severity?.toLowerCase() === 'critical');
@@ -228,7 +229,7 @@ export function RangerAlertsPanel({ initialAlerts = [] }) {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:3000/api/alerts/recent?limit=10`, {
+      const res = await fetch(`${API_BASE_URL}/api/alerts/recent?limit=10`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

@@ -7,6 +7,7 @@ import {
   Tooltip,
   ResponsiveContainer
 } from 'recharts';
+import { API_BASE_URL } from '../../config/api';
 
 const COLORS = {
   brute_force: '#dc2626',
@@ -39,7 +40,7 @@ export default function AttackTypeChart() {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:3000/api/logs/stats', {
+        const res = await fetch(`${API_BASE_URL}/api/logs/stats`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'

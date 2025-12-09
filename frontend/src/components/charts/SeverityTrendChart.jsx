@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSocket } from '../../hooks/useSocket';
+import { API_BASE_URL } from '../../config/api';
 import {
   LineChart,
   Line,
@@ -36,7 +37,7 @@ export default function SeverityTrendChart() {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:3000/api/logs/stats', {
+        const res = await fetch(`${API_BASE_URL}/api/logs/stats`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -69,7 +70,7 @@ export default function SeverityTrendChart() {
     
     const handleNewLog = () => {
       const token = localStorage.getItem('token');
-      fetch('http://localhost:3000/api/logs/stats', {
+      fetch(`${API_BASE_URL}/api/logs/stats`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
