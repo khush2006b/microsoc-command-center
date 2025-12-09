@@ -7,6 +7,12 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-green)](https://www.mongodb.com/cloud/atlas)
 [![Redis](https://img.shields.io/badge/Redis-7+-red)](https://redis.io/)
 
+## 🌐 Live Deployment
+
+- **Frontend**: [https://microsoc-command-center-frontend.onrender.com](https://microsoc-command-center-frontend.onrender.com)
+- **Backend API**: [https://microsoc-command-center-1.onrender.com](https://microsoc-command-center-1.onrender.com)
+- **Health Check**: [https://microsoc-command-center-1.onrender.com/health](https://microsoc-command-center-1.onrender.com/health)
+
 ---
 
 ## 📋 Table of Contents
