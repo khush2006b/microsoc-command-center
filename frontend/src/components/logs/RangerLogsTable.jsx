@@ -7,6 +7,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useSocket } from '../../hooks/useSocket';
 import { NeonButton } from '../ui/NeonButton';
 import { FuturisticDropdown } from '../ui/FuturisticDropdown';
+import { API_BASE_URL } from '../../config/api';
 
 // Compact Holographic Log Row Component
 const CompactLogRow = ({ log, isNew = false }) => {
@@ -233,7 +234,7 @@ export function RangerLogsTable() {
       if (filter.attackType) params.append('event_type', filter.attackType);
 
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:3000/api/logs/recent?${params}`, {
+      const res = await fetch(`${API_BASE_URL}/api/logs/recent?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

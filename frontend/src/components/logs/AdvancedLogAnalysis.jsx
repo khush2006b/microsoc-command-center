@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSocket } from '../../hooks/useSocket';
+import { API_BASE_URL } from '../../config/api';
 
 // Real IP geolocation lookup with caching
 const ipCache = new Map();
@@ -447,7 +448,7 @@ export function AdvancedLogAnalysis() {
   const fetchLogs = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:3000/api/logs/recent?limit=500`, {
+      const res = await fetch(`${API_BASE_URL}/api/logs/recent?limit=500`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
