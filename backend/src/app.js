@@ -53,14 +53,19 @@ if (NODE_ENV === 'production') {
 const app = express();
 const server = http.createServer(app);
 
+// CRITICAL: Set server timeouts for Render proxy compatibility
+server.keepAliveTimeout = 60000;  // 60 seconds
+server.headersTimeout = 65000;    // 65 seconds (must be > keepAliveTimeout)
+
 // Socket.IO Configuration for Render Deployment
 const io = new Server(server, {
   path: "/socket.io",
-  transports: ["websocket"],     // ⛔ disable polling entirely
-  allowUpgrades: false,          // ⛔ no upgrade attempts
+  transports: ["websocket"],     // ONLY websocket - polling breaks on Render
+  allowUpgrades: false,          // No upgrade attempts
   cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
+    origin: "*",                 // Allow all origins (worker connects from different IP)
+    methods: ["GET", "POST"],
+    allowedHeaders: ["*"]
   }
 });
 
@@ -185,12 +190,16 @@ server.listen(PORT, '0.0.0.0', () => {
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  Environment:  ${NODE_ENV}
  Port:         ${PORT}
+ Host:         0.0.0.0
  Frontend:     ${FRONTEND_URL}
  MongoDB:      ${MONGODB_URI ? '✅ Connected' : '❌ Not configured'}
  Redis:        ${process.env.REDIS_URL ? '✅ Connected' : '❌ Not configured'}
  Email:        ${process.env.EMAIL_USER ? '✅ Configured' : '❌ Not configured'}
- WebSocket:    ws://0.0.0.0:${PORT}
- Health:       /health
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 🔌 WebSocket:  ws://0.0.0.0:${PORT}/socket.io
+ ⚡ Transport:  websocket-only (polling disabled)
+ 🌐 CORS:       * (all origins)
+ 🏥 Health:     http://0.0.0.0:${PORT}/health
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   `);
 });
