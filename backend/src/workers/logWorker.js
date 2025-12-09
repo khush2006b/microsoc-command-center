@@ -25,12 +25,12 @@ const initializeSocket = () => {
     // CRITICAL: Explicit path (must match server)
     path: '/socket.io',
     
-    // CRITICAL: Use ONLY websocket transport (no polling fallback)
-    // Polling causes issues on Render
-    transports: ['websocket'],
+    // CRITICAL: Allow BOTH transports with websocket preferred
+    // Render may block pure websocket, so we need polling as fallback
+    transports: ['polling', 'websocket'],
     
-    // Force upgrade to websocket immediately
-    upgrade: false,
+    // Allow upgrade from polling to websocket
+    upgrade: true,
     
     // Reconnection settings (aggressive for Render)
     reconnection: true,
@@ -39,10 +39,7 @@ const initializeSocket = () => {
     reconnectionAttempts: Infinity,    // Never give up
     
     // Timeout settings (extended for Render)
-    timeout: 20000,                    // 20 seconds connection timeout
-    
-    // CRITICAL: Disable TLS verification (Render uses proxied SSL)
-    rejectUnauthorized: false,
+    timeout: 30000,                    // 30 seconds connection timeout (increased)
     
     // Force new connection (don't reuse)
     forceNew: true,
@@ -50,11 +47,23 @@ const initializeSocket = () => {
     // Auto-connect on initialization
     autoConnect: true,
     
+    // Query parameters (helps with routing on Render)
+    query: {
+      clientType: 'worker',
+      workerId: process.env.RENDER_SERVICE_NAME || 'log-worker'
+    },
+    
     // Additional headers (optional, for debugging)
     extraHeaders: {
       'x-client-type': 'worker',
       'x-worker-id': process.env.RENDER_SERVICE_NAME || 'log-worker'
-    }
+    },
+    
+    // Disable browser-specific features
+    withCredentials: false,
+    
+    // Don't try to use native WebSocket
+    forceBase64: false
   });
 
   io.on("connect", () => {
@@ -73,9 +82,18 @@ const initializeSocket = () => {
   io.on("connect_error", (error) => {
     console.error("❌ Worker Socket.IO connection error:", error.message);
     console.error(`   🔍 Error type: ${error.type}`);
-    console.error(`   🔍 Description: ${error.description}`);
+    
+    // Detailed error information
+    if (error.description) {
+      console.error(`   🔍 Description: ${JSON.stringify(error.description)}`);
+    }
     if (error.context) {
-      console.error(`   🔍 Context:`, error.context);
+      console.error(`   🔍 Context: ${JSON.stringify(error.context)}`);
+    }
+    
+    // Log current transport being used
+    if (io && io.io && io.io.engine) {
+      console.error(`   🔍 Current transport: ${io.io.engine.transport?.name || 'unknown'}`);
     }
   });
 
@@ -94,6 +112,15 @@ const initializeSocket = () => {
   
   io.on("reconnect_failed", () => {
     console.error(`❌ Reconnection failed after all attempts`);
+  });
+  
+  // Additional debugging events
+  io.io.engine.on("upgrade", (transport) => {
+    console.log(`⬆️ Transport upgraded to: ${transport.name}`);
+  });
+  
+  io.io.engine.on("upgradeError", (error) => {
+    console.error(`❌ Transport upgrade error:`, error.message);
   });
 };
 
