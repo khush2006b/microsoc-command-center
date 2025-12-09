@@ -25,21 +25,20 @@ const initializeSocket = () => {
     // CRITICAL: Explicit path (must match server)
     path: '/socket.io',
     
-    // CRITICAL: Allow BOTH transports with websocket preferred
-    // Render may block pure websocket, so we need polling as fallback
-    transports: ['polling', 'websocket'],
+    // CRITICAL: Use ONLY websocket (polling gets 502 on Render)
+    transports: ['websocket'],
     
-    // Allow upgrade from polling to websocket
-    upgrade: true,
+    // Don't try to upgrade
+    upgrade: false,
     
     // Reconnection settings (aggressive for Render)
     reconnection: true,
-    reconnectionDelay: 1000,           // Start with 1 second
-    reconnectionDelayMax: 5000,        // Max 5 seconds between attempts
+    reconnectionDelay: 2000,           // Start with 2 seconds
+    reconnectionDelayMax: 10000,       // Max 10 seconds between attempts
     reconnectionAttempts: Infinity,    // Never give up
     
-    // Timeout settings (extended for Render)
-    timeout: 30000,                    // 30 seconds connection timeout (increased)
+    // Timeout settings (very extended for Render SSL proxy)
+    timeout: 60000,                    // 60 seconds connection timeout
     
     // Force new connection (don't reuse)
     forceNew: true,
@@ -50,20 +49,22 @@ const initializeSocket = () => {
     // Query parameters (helps with routing on Render)
     query: {
       clientType: 'worker',
-      workerId: process.env.RENDER_SERVICE_NAME || 'log-worker'
+      workerId: process.env.RENDER_SERVICE_NAME || 'log-worker',
+      transport: 'websocket'
     },
     
     // Additional headers (optional, for debugging)
     extraHeaders: {
       'x-client-type': 'worker',
-      'x-worker-id': process.env.RENDER_SERVICE_NAME || 'log-worker'
+      'x-worker-id': process.env.RENDER_SERVICE_NAME || 'log-worker',
+      'user-agent': 'socket.io-client-worker'
     },
     
-    // Disable browser-specific features
-    withCredentials: false,
+    // CRITICAL: Try to avoid certificate issues
+    rejectUnauthorized: false,
     
-    // Don't try to use native WebSocket
-    forceBase64: false
+    // Disable browser-specific features
+    withCredentials: false
   });
 
   io.on("connect", () => {
