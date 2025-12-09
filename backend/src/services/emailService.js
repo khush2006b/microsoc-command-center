@@ -28,7 +28,7 @@ const createTransporter = () => {
   
   if (EMAIL_SERVICE === 'gmail') {
     console.log(`📧 Mailer: Using Gmail for ${EMAIL_USER}`);
-    return nodemailer.createTransporter({
+    return nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: EMAIL_USER,
@@ -39,7 +39,7 @@ const createTransporter = () => {
   
   // Default: Use custom SMTP
   console.log(`📧 Mailer: Using SMTP ${SMTP_HOST}:${SMTP_PORT} (Secure: ${SMTP_SECURE})`);
-  return nodemailer.createTransporter({
+  return nodemailer.createTransport({
     host: SMTP_HOST,
     port: SMTP_PORT,
     secure: SMTP_SECURE, // true for 465, false for other ports
