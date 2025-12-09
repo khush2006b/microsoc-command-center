@@ -26,22 +26,30 @@ export const signup = async (req, res) => {
     if (existingUser) {
       // If user exists but hasn't verified email, allow re-signup with new OTP
       if (!existingUser.isEmailVerified) {
+        const EMAIL_DISABLED = process.env.DISABLE_EMAIL === 'true' || (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD);
+        
         // Generate new OTP
         const otp = generateOTP();
         const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
         
         existingUser.otp = otp;
         existingUser.otpExpiry = otpExpiry;
+        existingUser.isEmailVerified = EMAIL_DISABLED; // Auto-verify if email disabled
         await existingUser.save();
         
-        // Send OTP email
+        // Send OTP email (or skip if disabled)
         try {
           await sendOTPEmail(email, otp, existingUser.fullName);
           console.log(`🔄 OTP resent to existing unverified user: ${email}`);
           
+          const responseMessage = EMAIL_DISABLED
+            ? `Account found. Email verification disabled. Use OTP: ${otp} for testing.`
+            : 'Verification code sent to your email. Please verify to complete signup.';
+          
           return res.status(201).json({
             success: true,
-            message: 'Verification code sent to your email. Please verify to complete signup.',
+            message: responseMessage,
+            ...(EMAIL_DISABLED && { otp }),
             user: {
               id: existingUser._id,
               email: existingUser.email,
@@ -51,10 +59,26 @@ export const signup = async (req, res) => {
             }
           });
         } catch (emailError) {
-          console.error('❌ Failed to send OTP email:', emailError);
-          return res.status(500).json({
-            success: false,
-            error: 'Failed to send verification email. Please try again.'
+          if (!EMAIL_DISABLED) {
+            console.error('❌ Failed to send OTP email:', emailError);
+            return res.status(500).json({
+              success: false,
+              error: 'Failed to send verification email. Please try again.'
+            });
+          }
+          // Email disabled, continue anyway
+          console.warn('⚠️  Email disabled, OTP:', otp);
+          return res.status(201).json({
+            success: true,
+            message: `Account found. Email verification disabled. Use OTP: ${otp} for testing.`,
+            otp,
+            user: {
+              id: existingUser._id,
+              email: existingUser.email,
+              fullName: existingUser.fullName,
+              status: existingUser.status,
+              isEmailVerified: existingUser.isEmailVerified
+            }
           });
         }
       }
@@ -69,6 +93,7 @@ export const signup = async (req, res) => {
     // Generate OTP
     const otp = generateOTP();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const EMAIL_DISABLED = process.env.DISABLE_EMAIL === 'true' || (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD);
 
     // Create pending analyst account with OTP
     const user = await User.create({
@@ -81,7 +106,7 @@ export const signup = async (req, res) => {
       status: 'pending',
       otp,
       otpExpiry,
-      isEmailVerified: false,
+      isEmailVerified: EMAIL_DISABLED, // Auto-verify if email is disabled
       permissions: {
         viewLogs: false,
         viewAlerts: false,
@@ -91,25 +116,39 @@ export const signup = async (req, res) => {
       }
     });
 
-    // Send OTP email
+    // Send OTP email (or skip if disabled)
     try {
-      await sendOTPEmail(email, otp, fullName);
-      console.log(`📧 OTP sent to: ${email}`);
+      const emailResult = await sendOTPEmail(email, otp, fullName);
+      if (EMAIL_DISABLED) {
+        console.log(`⚠️  Email disabled - OTP: ${otp}`);
+      } else {
+        console.log(`📧 OTP sent to: ${email}`);
+      }
     } catch (emailError) {
-      // If email fails, delete the user and return error
-      await User.findByIdAndDelete(user._id);
-      console.error('❌ Failed to send OTP email:', emailError);
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to send verification email. Please try again.'
-      });
+      // If email fails and email is required, delete the user and return error
+      if (!EMAIL_DISABLED) {
+        await User.findByIdAndDelete(user._id);
+        console.error('❌ Failed to send OTP email:', emailError);
+        return res.status(500).json({
+          success: false,
+          error: 'Failed to send verification email. Please try again.'
+        });
+      }
+      // If email is disabled, just log the error and continue
+      console.warn('⚠️  Email disabled, skipping email error');
     }
 
     console.log(`📝 New analyst signup request: ${email}`);
 
+    // If email is disabled, return success with OTP for testing
+    const responseMessage = EMAIL_DISABLED 
+      ? `Account created successfully. Email verification disabled. Use OTP: ${otp} for testing.`
+      : 'Verification code sent to your email. Please verify to complete signup.';
+
     res.status(201).json({
       success: true,
-      message: 'Verification code sent to your email. Please verify to complete signup.',
+      message: responseMessage,
+      ...(EMAIL_DISABLED && { otp }), // Include OTP in response only when email is disabled
       user: {
         id: user._id,
         email: user.email,

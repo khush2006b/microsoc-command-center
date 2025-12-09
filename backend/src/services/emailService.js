@@ -7,17 +7,23 @@ const EMAIL_USER = process.env.EMAIL_USER || process.env.MAIL_USER;
 const EMAIL_PASSWORD = process.env.EMAIL_PASSWORD || process.env.MAIL_PASS;
 const SMTP_HOST = process.env.SMTP_HOST || process.env.MAIL_HOST || 'smtp.gmail.com';
 const SMTP_PORT = parseInt(process.env.SMTP_PORT || process.env.MAIL_PORT || '587');
+const EMAIL_DISABLED = process.env.DISABLE_EMAIL === 'true' || (!EMAIL_USER || !EMAIL_PASSWORD);
 
 // Validate email configuration on startup
 if (!EMAIL_USER || !EMAIL_PASSWORD) {
-  console.error('❌ Email configuration missing: EMAIL_USER and EMAIL_PASSWORD required');
-  if (NODE_ENV === 'production') {
-    throw new Error('Email configuration required in production');
-  }
+  console.warn('⚠️  Email configuration missing: EMAIL_USER and EMAIL_PASSWORD not set');
+  console.warn('⚠️  Email functionality will be disabled. Set DISABLE_EMAIL=true to suppress this warning.');
+} else {
+  console.log('✅ Email service configured');
 }
 
 // Email transporter configuration
 const createTransporter = () => {
+  if (EMAIL_DISABLED) {
+    console.warn('⚠️  Email is disabled - returning mock transporter');
+    return null;
+  }
+  
   const SMTP_SECURE = SMTP_PORT === 465;
   
   if (EMAIL_SERVICE === 'gmail') {
@@ -54,6 +60,13 @@ export const generateOTP = () => {
 
 // Send OTP email
 export const sendOTPEmail = async (email, otp, userName = 'User') => {
+  // If email is disabled, just log the OTP and return success
+  if (EMAIL_DISABLED) {
+    console.log(`📧 [EMAIL DISABLED] OTP for ${email}: ${otp}`);
+    console.log(`⚠️  To enable email, set EMAIL_USER and EMAIL_PASSWORD environment variables`);
+    return { success: true, messageId: 'disabled', otp }; // Return OTP for testing
+  }
+  
   try {
     const transporter = createTransporter();
     
@@ -273,6 +286,12 @@ export const sendOTPEmail = async (email, otp, userName = 'User') => {
 
 // Send welcome email after successful verification
 export const sendWelcomeEmail = async (email, userName = 'User') => {
+  // If email is disabled, just log and return success
+  if (EMAIL_DISABLED) {
+    console.log(`📧 [EMAIL DISABLED] Welcome email skipped for ${email}`);
+    return { success: true };
+  }
+  
   try {
     const transporter = createTransporter();
     
