@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { HologramCard } from '../ui/HologramCard';
-import RangerLogsTable from '../logs/RangerLogsTable';
+import RangerLogsTable from '../logs/RangerLogsTable.jsx';
 import RangerAlertsPanel from '../alerts/RangerAlertsPanel';
 import AttackTypeChart from '../Charts/AttackTypeChart';
 import SeverityTrendChart from '../Charts/SeverityTrendChart';
