@@ -27,6 +27,7 @@
     "mongoose": "^8.20.1",
     "nodemailer": "^7.0.11",
     "redis": "^5.10.0",
+    "resend": "^4.0.1",
     "socket": "^1.1.42",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
