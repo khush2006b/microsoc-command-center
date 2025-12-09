@@ -4,6 +4,9 @@ import http from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { fork } from 'child_process';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Local Module Imports
 import connectDB from './config/db.js';
@@ -14,6 +17,10 @@ import authRoutes from './routes/auth.routes.js';
 import adminRoutes from './routes/admin.routes.js';
 import simulatorRoutes from './routes/simulator.route.js';
 import { authMiddleware, permissionCheck } from './middleware/authMiddleware.js';
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -76,6 +83,60 @@ console.log(`🌐 CORS: ${NODE_ENV === 'production' ? 'ALL ORIGINS ALLOWED (prod
 
 connectDB(MONGODB_URI);
 
+// ============================================================================
+// WORKER PROCESS MANAGEMENT
+// ============================================================================
+let workerProcess = null;
+let workerRestartCount = 0;
+const MAX_RESTART_ATTEMPTS = 5;
+const RESTART_DELAY = 3000; // 3 seconds
+
+function startWorker() {
+  const workerPath = path.join(__dirname, 'workers', 'logWorker.js');
+  
+  console.log('\n🔧 Starting BullMQ worker process...');
+  console.log(`📂 Worker path: ${workerPath}`);
+  
+  workerProcess = fork(workerPath, [], {
+    env: {
+      ...process.env,
+      INTERNAL_BACKEND_URL: `http://localhost:${PORT}`,
+      NODE_ENV: NODE_ENV,
+      MONGODB_URI: MONGODB_URI,
+      REDIS_URL: process.env.REDIS_URL,
+      PORT: PORT
+    },
+    stdio: ['inherit', 'inherit', 'inherit', 'ipc']
+  });
+
+  workerProcess.on('message', (message) => {
+    console.log('📩 Message from worker:', message);
+  });
+
+  workerProcess.on('error', (error) => {
+    console.error('❌ Worker process error:', error.message);
+  });
+
+  workerProcess.on('exit', (code, signal) => {
+    console.warn(`⚠️ Worker process exited with code ${code} and signal ${signal}`);
+    
+    // Auto-restart worker if it crashes (with limit)
+    if (workerRestartCount < MAX_RESTART_ATTEMPTS) {
+      workerRestartCount++;
+      console.log(`🔄 Attempting to restart worker (attempt ${workerRestartCount}/${MAX_RESTART_ATTEMPTS})...`);
+      
+      setTimeout(() => {
+        startWorker();
+      }, RESTART_DELAY);
+    } else {
+      console.error(`❌ Worker reached maximum restart attempts (${MAX_RESTART_ATTEMPTS}). Not restarting.`);
+    }
+  });
+
+  console.log(`✅ Worker process started with PID: ${workerProcess.pid}\n`);
+}
+// ============================================================================
+
 
 
 app.use(cors({
@@ -123,7 +184,9 @@ io.on('connection', (socket) => {
 
 app.get('/health', (req, res) => {
   res.json({ 
-    status: 'ok', 
+    status: 'ok',
+    worker: workerProcess !== null && !workerProcess.killed,
+    workerPid: workerProcess?.pid || null,
     timestamp: new Date(),
     environment: NODE_ENV,
     port: PORT,
@@ -202,6 +265,38 @@ server.listen(PORT, '0.0.0.0', () => {
  🏥 Health:     http://0.0.0.0:${PORT}/health
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   `);
+  
+  // Start worker process after server is listening
+  startWorker();
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('\n🛑 SIGTERM received, shutting down gracefully...');
+  
+  if (workerProcess) {
+    console.log('🛑 Stopping worker process...');
+    workerProcess.kill('SIGTERM');
+  }
+  
+  server.close(() => {
+    console.log('✅ Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('\n🛑 SIGINT received, shutting down gracefully...');
+  
+  if (workerProcess) {
+    console.log('🛑 Stopping worker process...');
+    workerProcess.kill('SIGINT');
+  }
+  
+  server.close(() => {
+    console.log('✅ Server closed');
+    process.exit(0);
+  });
 });
 
 // Export for worker access

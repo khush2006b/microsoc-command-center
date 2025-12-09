@@ -9,97 +9,84 @@ import Alert from "../models/alert.model.js";
 import { processLogWithRules } from "../engine/ruleEngine.js";
 import { updateMetrics } from "../engine/utils/metrics.js";
 
-// CRITICAL: Disable TLS certificate verification for Render (uses self-signed certs in some cases)
+// ============================================================================
+// INTERNAL BACKEND CONNECTION
+// ============================================================================
+// Worker runs in same container as backend, so use internal localhost URL
+const PORT = process.env.PORT || 3000;
+const BACKEND_URL = process.env.INTERNAL_BACKEND_URL || `http://localhost:${PORT}`;
 
-
-// Connect to backend's Socket.IO server as a client
-const BACKEND_URL = process.env.BACKEND_URL || "https://microsoc-command-center-1.onrender.com";
 let io = null;
 let ioConnected = false;
 
 console.log(`🔌 Worker initializing Socket.IO client...`);
-console.log(`🎯 Backend URL: ${BACKEND_URL}`);
+console.log(`🎯 Backend URL (internal): ${BACKEND_URL}`);
 
 const initializeSocket = () => {
   io = ioClient(BACKEND_URL, {
     // CRITICAL: Explicit path (must match server)
     path: '/socket.io',
     
-    // CRITICAL: Use ONLY websocket (polling gets 502 on Render)
+    // CRITICAL: Use ONLY websocket (pure WebSocket, no polling)
     transports: ['websocket'],
     
-    // Don't try to upgrade
+    // Don't try to upgrade (already on websocket)
     upgrade: false,
     
-    // Reconnection settings (aggressive for Render)
+    // Reconnection settings
     reconnection: true,
-    reconnectionDelay: 2000,           // Start with 2 seconds
-    reconnectionDelayMax: 10000,       // Max 10 seconds between attempts
+    reconnectionDelay: 1000,           // Start with 1 second
+    reconnectionDelayMax: 5000,        // Max 5 seconds
     reconnectionAttempts: Infinity,    // Never give up
     
-    // Timeout settings (very extended for Render SSL proxy)
-    timeout: 60000,                    // 60 seconds connection timeout
+    // Timeout settings (internal connection, should be fast)
+    timeout: 10000,                    // 10 seconds connection timeout
     
-    // Force new connection (don't reuse)
+    // Force new connection
     forceNew: true,
     
     // Auto-connect on initialization
     autoConnect: true,
     
-    // Query parameters (helps with routing on Render)
+    // Query parameters (identify as worker)
     query: {
       clientType: 'worker',
-      workerId: process.env.RENDER_SERVICE_NAME || 'log-worker',
+      workerId: 'bullmq-log-worker',
       transport: 'websocket'
     },
     
-    // Additional headers (optional, for debugging)
+    // Additional headers
     extraHeaders: {
       'x-client-type': 'worker',
-      'x-worker-id': process.env.RENDER_SERVICE_NAME || 'log-worker',
-      'user-agent': 'socket.io-client-worker'
-    },
-    
-    // CRITICAL: Try to avoid certificate issues
-    rejectUnauthorized: false,
-    
-    // Disable browser-specific features
-    withCredentials: false
+      'x-worker-id': 'bullmq-log-worker'
+    }
   });
 
   io.on("connect", () => {
-    console.log("✅ Worker connected to backend Socket.IO server");
+    console.log("✅ Worker connected to backend Socket.IO server (internal)");
     console.log(`   🆔 Socket ID: ${io.id}`);
     console.log(`   🔗 Transport: ${io.io.engine.transport.name}`);
+    console.log(`   🌐 URL: ${BACKEND_URL}`);
     ioConnected = true;
   });
 
   io.on("disconnect", (reason) => {
     console.log(`🔌 Worker disconnected from Socket.IO: ${reason}`);
-    console.log(`   ⏳ Will attempt reconnection...`);
     ioConnected = false;
   });
 
   io.on("connect_error", (error) => {
     console.error("❌ Worker Socket.IO connection error:", error.message);
     console.error(`   🔍 Error type: ${error.type}`);
+    console.error(`   🔍 Backend URL: ${BACKEND_URL}`);
     
-    // Detailed error information
     if (error.description) {
-      console.error(`   🔍 Description: ${JSON.stringify(error.description)}`);
-    }
-    if (error.context) {
-      console.error(`   🔍 Context: ${JSON.stringify(error.context)}`);
-    }
-    
-    // Log current transport being used
-    if (io && io.io && io.io.engine) {
-      console.error(`   🔍 Current transport: ${io.io.engine.transport?.name || 'unknown'}`);
+      console.error(`   🔍 Description:`, error.description);
     }
   });
 
   io.on("reconnect_attempt", (attemptNumber) => {
-    console.log(`🔄 Reconnection attempt #${attemptNumber}`);
+    console.log(`🔄 Reconnection attempt #${attemptNumber} to ${BACKEND_URL}`);
   });
 
   io.on("reconnect", (attemptNumber) => {
@@ -114,38 +101,35 @@ const initializeSocket = () => {
   io.on("reconnect_failed", () => {
     console.error(`❌ Reconnection failed after all attempts`);
   });
-  
-  // Additional debugging events
-  io.io.engine.on("upgrade", (transport) => {
-    console.log(`⬆️ Transport upgraded to: ${transport.name}`);
-  });
-  
-  io.io.engine.on("upgradeError", (error) => {
-    console.error(`❌ Transport upgrade error:`, error.message);
-  });
 };
 
 // Initialize Socket.IO on startup
 initializeSocket();
 
-/**
- * CONNECT TO MONGODB
- * Worker also needs DB connection
- */
-mongoose.connect(process.env.MONGODB_URI);
+// ============================================================================
+// MONGODB CONNECTION
+// ============================================================================
+const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI;
+
+if (!MONGODB_URI) {
+  console.error('❌ MONGODB_URI not configured in environment variables');
+  process.exit(1);
+}
+
+mongoose.connect(MONGODB_URI);
+
 mongoose.connection.once("open", () => {
   console.log("✅ Worker connected to MongoDB");
+  console.log(`   📊 Database: ${mongoose.connection.name}`);
 });
 
 mongoose.connection.on("error", (err) => {
-  console.error("❌ MongoDB connection error:", err);
+  console.error("❌ MongoDB connection error:", err.message);
 });
 
-/**
- * MAIN WORKER
- * Uses BullMQ queue "logQueue"
- * Processes logs, runs rules, creates alerts, emits WebSocket events
- */
+// ============================================================================
+// BULLMQ WORKER
+// ============================================================================
 const worker = new Worker(
   LOG_QUEUE_NAME,
   async (job) => {
