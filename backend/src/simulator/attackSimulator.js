@@ -10,7 +10,7 @@ import {
   NORMAL_URLS, METHODS, BUSINESS_ACTIVITIES
 } from "./patterns.js";
 
-const API_URL = process.env.API_URL || "https://microsoc-command-center-1.onrender.com/api/logs/simulate";
+const API_URL = process.env.API_URL || "https://microsoc-command-center-1.onrender.com/logs";
 
 
 
