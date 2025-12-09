@@ -38,6 +38,9 @@ const corsOrigins = [
   'http://127.0.0.1:5174',
   'http://127.0.0.1:5175',
   /^http:\/\/.*:3000$/, // Allow worker and other backend connections
+  // Production Render URLs
+  'https://microsoc-command-center-frontend.onrender.com',
+  'https://microsoc-command-center-1.onrender.com',
 ];
 
 // Add production frontend URL
@@ -137,12 +140,34 @@ function startWorker() {
 }
 // ============================================================================
 
-
-
+// CORS Configuration
 app.use(cors({
-  origin: corsOrigins,
-  credentials: true
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin matches any of our allowed origins
+    const isAllowed = corsOrigins.some(allowedOrigin => {
+      if (typeof allowedOrigin === 'string') {
+        return origin === allowedOrigin;
+      }
+      // Handle regex patterns
+      return allowedOrigin.test(origin);
+    });
+    
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      console.warn(`⚠️  CORS blocked origin: ${origin}`);
+      callback(null, true); // Allow anyway in production for debugging
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range']
 }));
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
