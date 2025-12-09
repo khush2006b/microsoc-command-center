@@ -10,7 +10,7 @@ import { processLogWithRules } from "../engine/ruleEngine.js";
 import { updateMetrics } from "../engine/utils/metrics.js";
 
 // Connect to backend's Socket.IO server as a client
-const BACKEND_URL = process.env.BACKEND_URL || "http://backend:3000";
+const BACKEND_URL = process.env.BACKEND_URL || "https://microsoc-command-center-1.onrender.com";
 let io = null;
 let ioConnected = false;
 
