@@ -1,7 +1,7 @@
 // Incident Simulator - Test all 5 correlation rules
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/logs';
+const API_URL = process.env.API_URL || 'http://localhost:3000/logs';
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 // ═══════════════════════════════════════════════════════════════════════

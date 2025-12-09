@@ -14,20 +14,33 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const TAB_CONFIG = [
-  { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
-  { id: 'logs', label: 'Logs', icon: '📋' },
-  { id: 'alerts', label: 'Alerts', icon: '🚨' },
-  { id: 'analytics', label: 'Analytics', icon: '📊' },
-  { id: 'settings', label: 'Settings', icon: '⚙️' },
+  { id: 'dashboard', label: 'Dashboard', icon: '🏠', permission: 'viewAnalytics' },
+  { id: 'logs', label: 'Logs', icon: '📋', permission: 'viewLogs' },
+  { id: 'alerts', label: 'Alerts', icon: '🚨', permission: 'viewAlerts' },
+  { id: 'analytics', label: 'Analytics', icon: '📊', permission: 'viewLogs' }, // Analytics needs logs data
+  { id: 'settings', label: 'Settings', icon: '⚙️', permission: null }, // Settings available to all
 ];
 
 export function RangerDashboard() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const { user, logout, isAdmin, token } = useAuth();
+  const navigate = useNavigate();
+  
+  // Get first available tab based on permissions
+  const getFirstAvailableTab = () => {
+    if (isAdmin()) return 'dashboard';
+    
+    for (const tab of TAB_CONFIG) {
+      if (!tab.permission || user?.permissions?.[tab.permission]) {
+        return tab.id;
+      }
+    }
+    return 'settings'; // Fallback to settings if no permissions
+  };
+  
+  const [activeTab, setActiveTab] = useState(getFirstAvailableTab());
   const socket = useSocket();
   const [sharedLogs, setSharedLogs] = useState([]);
   const [sharedAlerts, setSharedAlerts] = useState([]);
-  const { user, logout, isAdmin, token } = useAuth();
-  const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
@@ -147,7 +160,14 @@ export function RangerDashboard() {
 
             {/* Tab Navigation */}
             <nav className="flex items-center gap-1">
-              {TAB_CONFIG.map((tab) => (
+              {TAB_CONFIG.filter(tab => {
+                // Admin can see all tabs
+                if (isAdmin()) return true;
+                // If tab has no permission requirement, show it to everyone
+                if (!tab.permission) return true;
+                // Check if user has the required permission
+                return user?.permissions?.[tab.permission] === true;
+              }).map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
@@ -190,12 +210,14 @@ export function RangerDashboard() {
                   👥 USERS
                 </button>
               )}
-              <button
-                onClick={() => navigate('/incidents')}
-                className="px-3 py-1.5 text-xs font-['Orbitron'] tracking-wider text-purple-400 hover:text-purple-300 border border-purple-500/30 hover:border-purple-400/50 rounded transition-all"
-              >
-                📋 INCIDENTS
-              </button>
+              {(isAdmin() || user?.permissions?.viewIncidents) && (
+                <button
+                  onClick={() => navigate('/incidents')}
+                  className="px-3 py-1.5 text-xs font-['Orbitron'] tracking-wider text-purple-400 hover:text-purple-300 border border-purple-500/30 hover:border-purple-400/50 rounded transition-all"
+                >
+                  📋 INCIDENTS
+                </button>
+              )}
               <button
                 onClick={handleLogout}
                 className="px-3 py-1.5 text-xs font-['Orbitron'] tracking-wider text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-400/50 rounded transition-all"

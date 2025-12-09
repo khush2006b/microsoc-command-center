@@ -7,6 +7,7 @@ import { LOG_QUEUE_NAME } from "../services/logQueue.js";
 import Log from "../models/log.model.js";
 import Alert from "../models/alert.model.js";
 import { processLogWithRules } from "../engine/ruleEngine.js";
+import { updateMetrics } from "../engine/utils/metrics.js";
 
 // Connect to backend's Socket.IO server as a client
 const BACKEND_URL = process.env.BACKEND_URL || "http://backend:3000";
@@ -51,10 +52,7 @@ initializeSocket();
  * CONNECT TO MONGODB
  * Worker also needs DB connection
  */
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-});
+mongoose.connect(process.env.MONGODB_URI);
 mongoose.connection.once("open", () => {
   console.log("✅ Worker connected to MongoDB");
 });
@@ -86,10 +84,13 @@ const worker = new Worker(
 
       console.log(`   📝 Log saved: ${savedLog._id}`);
 
-      // 2. Run rule engine
-      const { alertCreated, alerts } = await processLogWithRules(log);
+      // 2. Update real-time metrics for anomaly detection
+      await updateMetrics(savedLog);
 
-      // 3. Link log ID to all created alerts
+      // 3. Run rule engine
+      const { alertCreated, alerts } = await processLogWithRules(savedLog);
+
+      // 4. Link log ID to all created alerts
       if (alertCreated && alerts && alerts.length > 0) {
         for (const alert of alerts) {
           if (!alert.related_log_ids.includes(savedLog._id)) {
@@ -126,7 +127,7 @@ const worker = new Worker(
         }
       }
 
-      // 4. Mark log as processed
+      // 5. Mark log as processed
       savedLog.processed = true;
       savedLog.alert_generated = alertCreated;
       if (alerts && alerts.length > 0) {
@@ -134,7 +135,7 @@ const worker = new Worker(
       }
       await savedLog.save();
 
-      // 5. Emit log event to frontend
+      // 6. Emit log event to frontend
       if (io && ioConnected) {
         io.emit("log:new", {
           log_id: savedLog._id,

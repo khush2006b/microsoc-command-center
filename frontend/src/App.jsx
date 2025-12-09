@@ -30,7 +30,7 @@ function App() {
           <Route
             path="/incidents"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredPermission="viewIncidents">
                 <IncidentList />
               </ProtectedRoute>
             }
@@ -39,7 +39,7 @@ function App() {
           <Route
             path="/incidents/:id"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredPermission="viewIncidents">
                 <IncidentDetails />
               </ProtectedRoute>
             }

@@ -4,6 +4,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import AIRemediation from './AIRemediation';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -17,6 +18,8 @@ export function IncidentDetails() {
   const [activeTab, setActiveTab] = useState('summary');
   const [newComment, setNewComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [analysts, setAnalysts] = useState([]);
+  const [selectedAnalyst, setSelectedAnalyst] = useState('');
 
   const fetchIncident = useCallback(async () => {
     try {
@@ -46,6 +49,32 @@ export function IncidentDetails() {
   useEffect(() => {
     fetchIncident();
   }, [fetchIncident]);
+
+  // Fetch analysts for assignment (admin only)
+  useEffect(() => {
+    const fetchAnalysts = async () => {
+      if (user?.role !== 'admin') return;
+      
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_URL}/api/admin/users?role=analyst&status=active`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          setAnalysts(data.users || []);
+        }
+      } catch (err) {
+        console.error('Error fetching analysts:', err);
+      }
+    };
+
+    fetchAnalysts();
+  }, [user]);
 
   const handleStatusChange = async (newStatus) => {
     try {
@@ -98,6 +127,36 @@ export function IncidentDetails() {
       alert(`Error: ${err.message}`);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleAssignIncident = async () => {
+    if (!selectedAnalyst) {
+      alert('Please select an analyst');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/incidents/${id}/assign`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ assigned_to: selectedAnalyst })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setIncident(data.incident);
+        setSelectedAnalyst('');
+        alert('Incident assigned successfully');
+      } else {
+        alert(`Error: ${data.error}`);
+      }
+    } catch (err) {
+      alert(`Error: ${err.message}`);
     }
   };
 
@@ -204,7 +263,7 @@ export function IncidentDetails() {
       {/* Tabs */}
       <div className="mb-6 border-b border-white/10">
         <div className="flex gap-1">
-          {['summary', 'timeline', 'comments', 'actions'].map((tab) => (
+          {['summary', 'remediation', 'timeline', 'comments', 'actions'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -281,6 +340,13 @@ export function IncidentDetails() {
                 {incident.related_logs?.length > 0 ? 'Log details will be shown here' : 'No logs linked'}
               </div>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'remediation' && (
+          <div>
+            <h3 className="text-lg font-['Orbitron'] text-cyan-400 mb-6">AI-POWERED REMEDIATION</h3>
+            <AIRemediation incidentId={id} />
           </div>
         )}
 
@@ -370,6 +436,39 @@ export function IncidentDetails() {
         {activeTab === 'actions' && (
           <div className="space-y-6">
             <h3 className="text-lg font-['Orbitron'] text-cyan-400 mb-4">INCIDENT ACTIONS</h3>
+            
+            {/* Assign Incident (Admin Only) */}
+            {user && user.role === 'admin' && (
+              <div>
+                <h4 className="text-sm font-['Orbitron'] text-white mb-2">ASSIGN INCIDENT</h4>
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1">
+                    <label className="block text-xs text-gray-400 mb-1">
+                      Currently Assigned: {incident.assigned_to?.fullName || 'Unassigned'}
+                    </label>
+                    <select
+                      value={selectedAnalyst}
+                      onChange={(e) => setSelectedAnalyst(e.target.value)}
+                      className="w-full bg-black/50 border border-white/10 rounded p-2 text-gray-300 focus:outline-none focus:border-cyan-500"
+                    >
+                      <option value="">-- Select Analyst --</option>
+                      {analysts.map((analyst) => (
+                        <option key={analyst._id} value={analyst._id}>
+                          {analyst.fullName} ({analyst.email})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <button
+                    onClick={handleAssignIncident}
+                    disabled={!selectedAnalyst}
+                    className="px-4 py-2 bg-cyan-500/20 border border-cyan-500 text-cyan-400 rounded font-['Orbitron'] hover:bg-cyan-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    ASSIGN
+                  </button>
+                </div>
+              </div>
+            )}
             
             {/* Status Change */}
             {user && (user.role === 'analyst' || user.role === 'admin') && (

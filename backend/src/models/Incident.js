@@ -147,13 +147,18 @@ const incidentSchema = new mongoose.Schema({
       country: String,
       city: String
     }
+  },
+
+  // AI-Generated Remediation
+  remediation: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null
   }
 }, {
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
 });
 
-// Indexes for performance
-incidentSchema.index({ incident_id: 1 }, { unique: true });
+// Indexes for performance (incident_id index is automatic from unique: true)
 incidentSchema.index({ severity: 1, status: 1 });
 incidentSchema.index({ created_at: -1 });
 incidentSchema.index({ assigned_to: 1 });

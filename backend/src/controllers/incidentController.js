@@ -5,6 +5,7 @@ import Incident from '../models/Incident.js';
 import Alert from '../models/alert.model.js';
 import Log from '../models/log.model.js';
 import User from '../models/user.model.js';
+import { generateRemediation, clearRemediationCache } from '../services/aiRemediationService.js';
 
 /**
  * Helper: Add timeline entry
@@ -123,19 +124,34 @@ export const getIncidents = async (req, res) => {
     const userRole = req.user?.role;
     const userId = req.user?.id;
 
+    console.log('📋 Get Incidents - User:', req.user?.email, 'Role:', userRole, 'Permissions:', req.user?.permissions);
+
     let query = {};
 
     // Role-based filtering
     if (userRole === 'admin') {
       // Admin sees all incidents
+      console.log('👑 Admin - showing all incidents');
     } else if (userRole === 'analyst') {
-      // Analyst sees only assigned or created by them
-      query.$or = [
-        { assigned_to: userId },
-        { created_by: userId }
-      ];
+      // Analysts ALWAYS see incidents assigned to them OR created by them
+      // Analysts with viewIncidents permission ALSO see all other incidents
+      const hasViewPermission = req.user?.permissions?.viewIncidents;
+      console.log('👤 Analyst - viewIncidents permission:', hasViewPermission);
+      
+      if (!hasViewPermission) {
+        // Without permission: only assigned/created incidents
+        query.$or = [
+          { assigned_to: userId },
+          { created_by: userId }
+        ];
+        console.log('🔒 Limited to assigned/created incidents only');
+      } else {
+        // With permission: see all incidents (assigned + all others)
+        console.log('✅ Full access - showing all incidents (including assigned)');
+      }
     } else {
       // Viewer sees limited info (handled in select)
+      console.log('👁️ Viewer role');
     }
 
     // Additional filters
@@ -157,6 +173,8 @@ export const getIncidents = async (req, res) => {
         .lean(),
       Incident.countDocuments(query)
     ]);
+
+    console.log(`📊 Found ${incidents.length} incidents (total: ${total})`);
 
     res.json({
       success: true,
@@ -632,3 +650,85 @@ export const deleteIncident = async (req, res) => {
     });
   }
 };
+
+/**
+ * GET /api/incidents/:id/remediation
+ * Generate AI-powered remediation for incident
+ * 
+ * Flow:
+ * 1. Fetch incident + related alerts
+ * 2. Check if remediation exists in DB or cache
+ * 3. If not, call AI service to generate
+ * 4. Save to DB and return
+ */
+export const getIncidentRemediation = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { regenerate = false } = req.query;
+
+    // Fetch incident with related data
+    const incident = await Incident.findById(id)
+      .populate('related_alert_ids')
+      .populate('created_by', 'fullName email')
+      .populate('assigned_to', 'fullName email');
+
+    if (!incident) {
+      return res.status(404).json({
+        success: false,
+        error: 'Incident not found'
+      });
+    }
+
+    console.log(`🤖 Remediation requested for ${incident.incident_id}`);
+
+    // If regenerate flag is true, clear cache
+    if (regenerate === 'true' || regenerate === true) {
+      console.log('🔄 Regenerating remediation (cache cleared)');
+      await clearRemediationCache(incident._id.toString());
+      incident.remediation = null; // Clear DB copy
+    }
+
+    // Check if remediation already exists in DB
+    if (incident.remediation && !regenerate) {
+      console.log('✅ Returning existing remediation from DB');
+      return res.json({
+        success: true,
+        remediation: incident.remediation,
+        cached: true
+      });
+    }
+
+    // Generate AI remediation
+    const alerts = incident.related_alert_ids || [];
+    const remediation = await generateRemediation(incident, alerts);
+
+    // Save to incident document
+    incident.remediation = remediation;
+    await incident.save();
+
+    console.log(`✅ Remediation saved for ${incident.incident_id}`);
+
+    // Emit WebSocket event
+    if (req.io) {
+      req.io.emit('incident:remediation', {
+        incident_id: incident.incident_id,
+        timestamp: new Date()
+      });
+    }
+
+    res.json({
+      success: true,
+      remediation,
+      cached: false
+    });
+
+  } catch (error) {
+    console.error('❌ Error generating remediation:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to generate remediation',
+      message: error.message
+    });
+  }
+};
+

@@ -9,22 +9,23 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [capsLockOn, setCapsLockOn] = useState(false);
   const [emailValid, setEmailValid] = useState(null);
-  const [passwordValid, setPasswordValid] = useState(null);
   const [serverOnline, setServerOnline] = useState(true);
   const [shake, setShake] = useState(false);
 
-  // Generate particles once
-  const particles = useMemo(() => 
-    [...Array(15)].map((_, i) => ({
+  // Generate particles once with stable random values
+  const particles = useMemo(() => {
+    const seed = 42; // Stable seed for consistent particle positions
+    const random = (i) => ((seed + i * 13) % 100) / 100;
+    
+    return [...Array(15)].map((_, i) => ({
       id: i,
-      left: `${Math.random() * 100}%`,
-      delay: `${Math.random() * 5}s`,
-      duration: `${5 + Math.random() * 10}s`
-    })), 
-  []);
+      left: `${random(i) * 100}%`,
+      delay: `${random(i + 15) * 5}s`,
+      duration: `${5 + random(i + 30) * 10}s`
+    }));
+  }, []);
 
   // Role hint based on email
   const roleHint = useMemo(() => {
@@ -69,9 +70,6 @@ export default function LoginPage() {
     
     if (name === 'email') {
       setEmailValid(value.length > 0 ? validateEmail(value) : null);
-    }
-    if (name === 'password') {
-      setPasswordValid(value.length >= 6 ? true : value.length > 0 ? false : null);
     }
   };
 
@@ -236,11 +234,6 @@ export default function LoginPage() {
                 🔐 OPERATOR EMAIL
               </label>
               <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                  </svg>
-                </div>
                 <input
                   type="email"
                   name="email"
@@ -250,7 +243,7 @@ export default function LoginPage() {
                   className={`
                     w-full bg-black/50 
                     border-2 rounded-lg
-                    px-4 pl-12 py-3 
+                    px-4 py-3 
                     text-gray-200 font-['Roboto_Mono'] 
                     focus:outline-none 
                     transition-all duration-300
@@ -270,67 +263,32 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Password Field */}
-            <div className="relative">
-              <label className="block text-xs font-['Orbitron'] text-gray-400 uppercase tracking-wider mb-2">
-                🔑 ACCESS CODE
-              </label>
-              <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                </div>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  onKeyUp={handleKeyPress}
-                  required
-                  className={`
-                    w-full bg-black/50 
-                    border-2 rounded-lg
-                    px-4 pl-12 pr-14 py-3 
-                    text-gray-200 font-['Roboto_Mono'] 
-                    focus:outline-none 
-                    transition-all duration-300
-                    ${passwordValid === true ? 'border-green-500/50 focus:border-green-500 focus:shadow-[0_0_15px_rgba(0,255,0,0.3)]' : 
-                      passwordValid === false ? 'border-red-500/50 focus:border-red-500' : 
-                      'border-red-500/30 focus:border-red-500 focus:shadow-[0_0_15px_rgba(255,0,51,0.3)]'}
-                  `}
-                  placeholder="••••••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="
-                    absolute right-4 top-1/2 -translate-y-1/2
-                    text-gray-400 hover:text-red-400 
-                    transition-all duration-300
-                    focus:outline-none 
-                    group
-                    p-1.5 rounded-md
-                    hover:bg-red-500/20
-                    border border-transparent
-                    hover:border-red-500/50
-                  "
-                  tabIndex={-1}
-                  aria-label="Toggle password visibility"
-                >
-                  {showPassword ? (
-                    <svg className="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-              
+{/* PASSWORD FIELD — 100% FIXED LAYOUT */}
+<div className="mb-6 w-full">
+  <label className="block text-xs font-['Orbitron'] text-gray-400 uppercase tracking-wider mb-2">
+    🔑 ACCESS CODE
+  </label>
+
+  <div className="relative w-full bg-black/50 border-2 border-red-500/30 rounded-lg">
+    
+    <input
+      type="password"
+      name="password"
+      value={formData.password}
+      onChange={handleChange}
+      onKeyUp={handleKeyPress}
+      placeholder="••••••••"
+      required
+      className="
+        w-full py-3 px-4 
+        bg-transparent text-gray-200 
+        font-['Roboto_Mono']
+        focus:outline-none
+      "
+    />
+  </div>
+
+
               {/* Caps Lock Warning */}
               {capsLockOn && (
                 <div className="mt-2 flex items-center gap-2 text-xs text-yellow-400 font-['Roboto_Mono'] animate-fade-in">
@@ -435,7 +393,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes scan {
           0%, 100% { transform: translateY(-100%); }
           50% { transform: translateY(100%); }

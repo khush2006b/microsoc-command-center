@@ -15,6 +15,7 @@ import xssRule from "./rules/xss.js";
 import dataExfiltrationRule from "./rules/dataExfiltration.js";
 import anomalyRule from "./rules/anomaly.js";
 import multiStageRule from "./rules/multiStage.js";
+import anomalySpikeRule from "./rules/anomalySpike.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,7 +32,8 @@ const RULES = {
   xss: xssRule,
   data_exfiltration: dataExfiltrationRule,
   anomaly_spike: anomalyRule,
-  multistage_intrusion: multiStageRule
+  multistage_intrusion: multiStageRule,
+  real_time_anomaly_spike: anomalySpikeRule
 };
 
 function norm(str) {

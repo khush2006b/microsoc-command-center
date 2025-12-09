@@ -30,6 +30,9 @@ router.post('/:id/comment', roleCheck('analyst', 'admin'), incidentController.ad
 // PATCH /api/incidents/:id/add-logs - Add evidence logs (analysts and admins)
 router.patch('/:id/add-logs', roleCheck('analyst', 'admin'), incidentController.addLogs);
 
+// GET /api/incidents/:id/remediation - Generate AI remediation (all authenticated users)
+router.get('/:id/remediation', incidentController.getIncidentRemediation);
+
 // DELETE /api/incidents/:id - Delete incident (admin only)
 router.delete('/:id', roleCheck('admin'), incidentController.deleteIncident);
 

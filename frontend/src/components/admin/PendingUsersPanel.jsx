@@ -3,7 +3,8 @@ import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = baseURL.includes('/api') ? baseURL : `${baseURL}/api`;
 
 export default function PendingUsersPanel() {
   const [pendingUsers, setPendingUsers] = useState([]);
@@ -30,12 +31,17 @@ export default function PendingUsersPanel() {
 
   const fetchPendingUsers = async () => {
     try {
+      console.log('Fetching pending users from:', `${API_URL}/admin/pending-users`);
       const response = await axios.get(`${API_URL}/admin/pending-users`);
+      console.log('Pending users response:', response.data);
       if (response.data.success) {
         setPendingUsers(response.data.users);
+        console.log('Found pending users:', response.data.users.length);
       }
     } catch (error) {
       console.error('Failed to fetch pending users:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
     } finally {
       setLoading(false);
     }

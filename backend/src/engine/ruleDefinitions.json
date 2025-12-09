@@ -54,5 +54,14 @@
     "dedupTtlSeconds": 900,
     "mitre_id": "T1595,T1110,T1190,T1041",
     "description": "Correlates port scan → brute force → SQLi → data exfiltration in one chained intrusion."
+  },
+  "real_time_anomaly_spike": {
+    "enabled": true,
+    "spike_multiplier": 3.0,
+    "min_absolute_threshold": 20,
+    "min_baseline_samples": 3,
+    "dedup_window": 300,
+    "mitre_id": "T1499",
+    "description": "Real-time statistical anomaly detection using sliding window baseline deviation analysis. Detects traffic spikes, attack-type bursts, single-IP anomalies, and geographic surges."
   }
 }
