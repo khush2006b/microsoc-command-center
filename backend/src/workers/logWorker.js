@@ -10,7 +10,7 @@ import { processLogWithRules } from "../engine/ruleEngine.js";
 import { updateMetrics } from "../engine/utils/metrics.js";
 
 // CRITICAL: Disable TLS certificate verification for Render (uses self-signed certs in some cases)
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 
 // Connect to backend's Socket.IO server as a client
 const BACKEND_URL = process.env.BACKEND_URL || "https://microsoc-command-center-1.onrender.com";
