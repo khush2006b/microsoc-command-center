@@ -42,7 +42,7 @@ const AttackSimulator = () => {
   // Fetch status periodically
   const fetchStatus = useCallback(async () => {
     try {
-      const response = await axios.get(`${API_BASE}/simulator/status`);
+      const response = await axios.get(`${API_URL}/simulator/status`);
       if (response.data.success) {
         setIsRunning(response.data.state.running);
         setStats(response.data.stats);
@@ -68,7 +68,7 @@ const AttackSimulator = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post(`${API_BASE}/simulator/start`, {
+      const response = await axios.post(`${API_URL}/simulator/start`, {
         scenario,
         frequency
       });
@@ -86,7 +86,7 @@ const AttackSimulator = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post(`${API_BASE}/simulator/stop`);
+      const response = await axios.post(`${API_URL}/simulator/stop`);
       if (response.data.success) {
         setIsRunning(false);
       }
@@ -99,7 +99,7 @@ const AttackSimulator = () => {
 
   const handleConfigUpdate = async (newScenario, newFrequency) => {
     try {
-      await axios.post(`${API_BASE}/simulator/config`, {
+      await axios.post(`${API_URL}/simulator/config`, {
         scenario: newScenario !== undefined ? newScenario : scenario,
         frequency: newFrequency !== undefined ? newFrequency : frequency
       });
