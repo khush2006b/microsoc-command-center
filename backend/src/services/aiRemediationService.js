@@ -11,7 +11,7 @@ const LLM_CONFIG = {
   provider: process.env.LLM_PROVIDER || 'gemini', // gemini, openai, groq, ollama
   
   gemini: {
-    apiKey: process.env.GEMINI_API_KEY || 'AIzaSyAb1On_aDFnlbpgEx9NnQK5T27xUyoCe1w',
+    apiKey: process.env.GEMINI_API_KEY ,
     model: 'gemini-1.5-flash',
     endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent'
   },
